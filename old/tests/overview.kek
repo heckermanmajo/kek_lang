@@ -1,0 +1,382 @@
+
+# interface -> methods
+# schema -> fields
+
+# organize modules by concept
+# modules can contain multiple files
+
+#main_module
+# contains the main function
+# and can also contain all types of code chunks
+
+# only state modules allow for mutable state
+# on the top level
+#state_module node #  semantic name
+# : "singleton"
+#public interface
+#private Implementation/state
+# battle, campaign, menu
+# only here are objects allowed to be mutable
+# all state is in "objects"
+
+# OBJECTS: all state is in objects
+
+#system_module node  #  semantic name
+# allows un-pure functions
+# but no state
+
+#logic_module form_functions  #  semantic name
+#public interface
+#private Implementation (local functions)
+# game systems
+
+#data_module node_types #  semantic name
+#datatype -> does not belong to any module
+# objects, etc.
+
+# add constraints to the module
+module node "main" "state" "system" "logic" "data"
+
+# how to do meta structure of code??
+
+# Comment
+# object composition -> done
+# interface -> done, via schema
+
+# We define a variable
+
+myVar: Int = 10
+myVar2 := 21
+var counter: Int = 10
+
+counter = counter + 1
+
+# We define a function
+
+myFunction :(Int)->Int = fn(a:Int)->Int{
+    return a + 1
+}
+
+# We call the function
+myFunction(10)
+myFunction(a=10) # named parameter
+
+myList: List[Int] = [1,2,3,4,5]
+
+var myMap: Map[String,Int] = {
+    "one" = 1,
+    "two" = 2
+}
+
+myMap["one"] = 10
+
+# make a value const after creation
+const myMap
+# now we can't change the value
+
+constList : const List[Int] = const [1,2,3,4,5]
+constList2 := const [1,2,3,4,5]
+
+# generic schema
+Container : Type[T1, T2] = schema(T1, T2){
+    name:T1 = ---
+    age:T2 = 1
+}
+
+myContainer : Container[String, Int] = Container[String, Int]{
+    name = "John"
+    age = 20
+}
+
+# generic interface
+MyInterface : Type[T1, T2] = interface[T1, T2]{
+    fn get_name:(self)->T1 = ---
+    fn get_age:(self)->T2 = ---
+}
+
+# we can define a schema
+User: Type = schema{
+    name:String = ""
+    age:Int = 1
+}
+
+# we can create a new object
+myObject: Map = object{
+    name = "John"
+    age = 20
+}
+
+isUser : Bool = myObject::is(User)
+myUser : User = cast(myObject, User)
+myUser2: User = User{
+    name = "John"
+    age = 20
+}
+
+# self is mutable by default
+# all other variables are immutable by default
+is := fn(const self:Map, _schema:Type) -> Bool {
+    return _schema in self.__schemas
+}
+
+check := fn(const self:Map, _schema:Type) -> nil!TypeError {
+    if not self::is(_schema) {
+        error TypeError("Object does not match schema")
+    }
+}
+
+pub var battle := object{
+
+    player: Player = Player{
+        name = "John"
+        health = 100
+    }
+
+    enemy: Enemy = Enemy{
+        name = "Goblin"
+        health = 50
+    }
+
+}
+
+# we now can create a "class" with a "constructor"
+# without any magic
+Person := {
+    Type = schema{
+        implements HelloSayer # implements interface: compiler looks for the needed methods
+        name:String = "default name"
+        # age need to be set in the constructor
+        age:Int = ---
+    },
+    new = fn(name:String, age:Int)->Person.Type{
+        return Person.Type{
+            name = name
+            age = age
+        }
+    },
+}
+
+# create a method -> first parameter is self
+sayHello : (self:Person.Type)->String = fn(const self:Person.Type)->String{
+    return "Hello " + self.name
+}
+
+# create a new person and call the method
+john = Person.new("John", 20)
+john::sayHello() # the method call syntax is different, to avoid confusion with the function call
+# :: passes the object as the first parameter
+
+# we can define needed methods in interfaces
+HelloSayer : Type = interface{
+    # we can omit the type of the self parameter
+    # this allows for polymorphism
+    # --- means that there is no default implementation
+    sayHello:(self)->String = ---
+}
+
+# simple if statement
+if 1 == 1 {
+    print("1 is 1")
+}elif 1 == 2 {
+    print("1 is 2")
+}else{
+    print("1 is not 1 or 2")
+}
+
+# all for loops work with generators
+for i in range(0,10) {
+    print(i)
+}
+
+myUsers : const List[User] = const [
+    User{
+        name = "John"
+        age = 20
+    },
+    User{
+        name = "Jane"
+        age = 21
+    }
+]
+
+for index, user in myUsers {
+    print(index, user)
+    user::check(User) # check if the user is a User, crash if not
+}
+
+## error handling
+for index, user in myUsers {
+    print(index, user)
+    user::check(User)! # check if the user is a User, crash if not
+    # the !!! marks-> can crash here, we dont do anything with the error
+}
+
+# forloops -> lists or maps
+for index:Int, user:User in myUsers {
+    print(index, user)
+    user::check(User) catch(e: TypeError){
+      print("Error: ", e)
+      exit(1)
+    }
+}
+
+
+is_user := fn(object:Map)->Bool{
+
+   # show how recover works
+   bool_value := user::check(User) recover(e: TypeError){
+     return false
+   }
+
+   if bool_value {
+       print("Object is a user")
+       my_schemas : List[Type] = user.__schemas
+       for _, s in my_schemas {
+           print("Schema: ", s)
+       }
+   }
+
+   return bool_value
+
+}
+
+
+return_optional := fn()->Int?{
+    rand := random(1,100)
+    if rand > 50 {
+        return rand
+    }
+    return nil
+}
+
+
+# code block
+# like a function, but without fn
+() -> nil {
+    print("Hello")
+    print("World")
+}
+
+# directly evaluated block
+my_int: Int = ()->Int{
+    return 10
+}
+
+# directly evaluated block
+# can also be used for try catch
+my_int : Int = ()->Int{
+    # ... lots or exception throwing code
+    return 10
+}
+recover(e: Exception){
+  print("Error: ", e)
+  return 0
+}
+catch(e: Error){
+  print("Error: ", e)
+  exit(1)
+}
+
+print(my_int)
+
+
+# braucht man generics?
+# nein, weil man kann einfach immer sagen "Map"
+# und man schaut dann nach ob die richtigen schemas erfüllt sind
+
+
+# nested schemas??
+
+DatabaseObject: Type = schema{
+    id:Int = -1
+    created_at:Int = -1
+}
+
+SomeUserTableEntry: Type = schema{
+    use DatabaseObject  # now User demands id and created_at
+    name:String = ""
+    age:Int = 0
+}
+
+# Compile time schema check
+# schemas can be checked at compile time OR at runtime
+# but runtime checks are slower, so we should avoid them
+
+# this protocol stuff is potentially slow during runtime ...
+myProtocol := fn(a: Any)->nil{
+
+    # case allows for type-pattern matching
+    # if a is a User, the first case is executed
+    # if a is a DatabaseObject, the second case is executed
+    # if both fail, the else case is executed
+    # case looks if they can be passed into the
+    # blocks
+
+    some_field := 1234
+
+    case(a){
+
+        (a: User) -> nil {
+          use some_field  # get context from the outer scope
+          # even this is a inner scope
+          print(some_field + 132)
+          print("User")
+        }
+
+        (a: DataBaseObject) -> nil{
+          use some_field
+          print(some_field -33)
+          print("DatabaseObject")
+        }
+
+        else (a: Any) -> nil {
+          print("Unknown type")
+        }
+
+    }
+
+}
+
+# function type
+myFunction: FunctionType = fn(a: Int) -> Int
+
+
+# sub functions
+# sub functions allow to place function inside of functions
+# but place them at the end
+# sub means, that the variable if available only inside of the function+
+# but even before the function is defined
+# sub functions cannot be var
+my_long_function := fn(a: Int) -> Int{
+
+    sub_function_a(
+        sub_function_b(a)
+    )
+
+     print("lots of code here")
+
+
+    # sub functions
+    sub sub_function_a := fn(b: Int) -> Int{
+        return b + 1
+    }
+
+    sub sub_function_b := fn(b: Int) -> Int{
+        return b + 2
+    }
+
+    return sub_function(a)
+
+}
+
+
+# shorthand for adding to a list
+var myList := [1,2,3,4,5]
+myList[] = 6
+
+# adding to a map
+var myMap := {
+    "one" = 1,
+    "two" = 2
+}
+myMap["three"] = 3

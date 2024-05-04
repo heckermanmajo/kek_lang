@@ -1,0 +1,9 @@
+use dimantic.tables as T
+
+# dimantic needs to provide save requests
+# we cannot let people request all kinds of data
+# but we can have a great list of possible requests
+filter: FilterType = fn(){
+
+}
+

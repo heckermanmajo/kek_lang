@@ -1,0 +1,119 @@
+use dimantic.public.node as dm_node
+use dimantic.public.author as dm_author
+
+# predefined schema
+NodeType := schema{}
+NodeInstance := schema{}
+
+ResultType := enum{
+  Ok=0
+  Error=1
+}
+
+
+# Login node implementation
+
+# create a empty map as node
+# has type Map
+var node := {}
+
+node.get_type_id = fn(self: NodeInstance)-> String {
+  return "default_login_node"
+}
+
+node.get_node_text = fn(self: NodeInstance)-> String {
+  return "Login"
+}
+
+node.can_be_moved_here_as_children = fn(
+    self: NodeInstance,
+    other: NodeInstance
+)-> Bool {
+  return false
+}
+
+node.on_context_menu = fn(self: NodeInstance)-> List<ContextMenuItem> {
+  return []
+}
+
+node.onclick = fn(self: NodeInstance)-> Bool {
+
+  right_view := dm_node.get_right_view()
+
+  new_form := html_elements.Form{}
+
+  new_form.add_input(
+    html_elements.Input{
+      name: "username",
+      type: "text",
+      placeholder: "Username"
+    }
+  )
+
+  new_form.add_input(
+     html_elements.Input{
+       name: "password",
+       type: "password",
+       placeholder: "Password"
+    }
+  )
+
+  new_form.add_button(
+    html_elements.Button{
+      text: "Login",
+      onclick: fn()-> Bool {
+        form_data := new_form.get_form_data()
+        form_data::send("login")  # will be send to the login request handler
+        return false
+      }
+    }
+  )
+
+}
+
+node.onfocus = fn(self: NodeInstance)-> Bool {
+  # what to do on focus ...
+  return false
+}
+
+# now check that node is a valid node
+node = cast(node, dm_node.Node.Type)
+    catch(t: TypeError){
+        author := dm_author.get_node_author()
+        create_error_news_node(
+            target_account=author,
+            message="Error: " + t,
+            error=t
+        )
+        print("Error: ", t)
+    }
+
+dm_node.registerNode(node)
+
+# ............................
+# backend file
+
+use dimantic.public.backend as dmb
+use dimantic.public.backend.PostResult as PostResult
+
+# would be defined in another file, since it is executed in another context
+register_handler(
+    "login",
+    fn(params: Map[String, String])-> PostResult {
+
+        return PostResult{}
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,3 @@
+<?php
+
+# parse command line args and read the file ...
