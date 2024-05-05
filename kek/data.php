@@ -59,19 +59,20 @@ enum TokenType: string {
 
 }
 
-
-$signs = [
-  " " => TokenType::WHITE_SPACE,
-  "\t" => TokenType::TAB,
-  "\n" => TokenType::NEW_LINE,
-  '##' => TokenType::MULTILINE_COMMENT,
-  '#' => TokenType::COMMENT,
-  '"' => TokenType::STRING_LITERAL_DOUBLE,
-  "'" => TokenType::STRING_LITERAL_SINGLE,
-  "\\\"" => TokenType::STRING_ESCAPE_DOUBLE,
-  "\\'" => TokenType::STRING_ESCAPE_SINGLE,
-];
-
+function get_signs() : array {
+  $signs = [
+    " " => TokenType::WHITE_SPACE,
+    "\t" => TokenType::TAB,
+    "\n" => TokenType::NEW_LINE,
+    '##' => TokenType::MULTILINE_COMMENT,
+    '#' => TokenType::COMMENT,
+    '"' => TokenType::STRING_LITERAL_DOUBLE,
+    "'" => TokenType::STRING_LITERAL_SINGLE,
+    "\\\"" => TokenType::STRING_ESCAPE_DOUBLE,
+    "\\'" => TokenType::STRING_ESCAPE_SINGLE,
+  ];
+  return $signs;
+}
 enum StatementType: string {
   case Literal = 'Literal';
 }

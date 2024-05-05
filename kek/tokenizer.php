@@ -1,5 +1,7 @@
 <?php
 
+include "data.php";
+
 
 function analyze_non_sign_word(string $word, int $line, int $column): Token {
   if (is_numeric($word)) {
@@ -120,6 +122,7 @@ function collapse_comments(array $tokens): array {
   $init_line = 0;
   $init_column = 0;
 
+  # todo: bug, it cannot handle a # between two ##
   foreach ($tokens as $token) {
     if ($token->type === TokenType::MULTILINE_COMMENT) {
       if ($in_multiline_comment) {
@@ -182,23 +185,179 @@ $code = <<<CODE
 # This is a comment
 ## This is a multiline comment
 KEK
+
+                                 { ... } # Anonymous code block
+                       [capture] { ... } # Captured code block
+     (i: int) -> float [capture] { ... } # Anonymous function
+f :: (i: int) -> float [capture] { ... } # Named local function
+f :: (i: int) -> float [capture] { ... } # Named global function
+
+we can use a struct later on ...
+MyStruct :: struct {
+  a: Int = 10
+  b: String = "Hello"
+}
 ##
-"Hello, World!"
-'
-This is a multiline string
-keke
-keke
-'
-"
-  ANOTHER STRING
-  Multiline
-"
+#?info -> will replace the small comment with an explantion comment and an example
+
+#?help -> will be replaced with al list of all help comments
+
+# Ocaml lifetime modifiers and locality, life time
+
+name :: "John"
+
+Human :: schema {
+  age: Int = 10
+  name: String = "John"
+}
+
+main :: () {
+
+  capture :: (a: Int, b: Int) -> Int {
+    return a + b
+  }
+  
+  my_changeable_human := Human{
+    age: 20,
+    name: name
+  }
+  
+  my_const_human :: Human{
+    age: 20,
+    name: "John"
+  }
+  
+}
+
+##  hello_world :: () -> String {
+  local_var := "Hello, World!"
+  
+  a :: [] # [1]
+  a[] = 1
+  a = [1, 2, 3]  erorr
+  return local_var
+}
+##
+
+#"Hello, World!"
+#'
+#This is a multiline string
+#keke
+#keke
+#'
+#"
+#  ANOTHER STRING
+#  Multiline
+#"
 CODE;
 
-$tokens = tokenize_first($code, $signs);
+$tokens = tokenize_first($code, get_signs());
 $tokens = collapse_strings($tokens);
 $tokens = collapse_comments($tokens);
 
 foreach ($tokens as $token) {
   echo $token . "\n";
 }
+
+class StringLiteral { }
+
+function look_forward(array $tokens, int $num, bool $throw_on_end = true): TokenType { }
+
+function expect_foreword(array $tokens, int $num, TokenType $tokenType, string $error_message) {
+  # do we have reached the end? ...
+}
+
+function next_is_non_semantic_token(array $tokens, int $index): bool { }
+function skip_non_semantic_tokens(array $tokens, int &$index): void {
+  while (next_is_non_semantic_token($tokens, $index)) {
+    $index++;
+  }
+}
+
+/**
+ * @param array<Token> $tokens
+ * @return array
+ * @throws SyntaxError
+ */
+function parse_file(array $tokens): array {
+  $statements = [];
+  $index = -1;
+
+  while ($index < count($tokens)) {
+
+    $index++;
+    $token = $tokens[$index];
+
+    if ($token->type === TokenType::NEW_LINE) {
+      $index++;
+      continue;
+    }
+
+    if ($token->type === TokenType::COMMENT || $token->type === TokenType::MULTILINE_COMMENT) {
+      $index++;
+      continue;
+    }
+
+    if ($token->type === TokenType::IDENTIFIER) {
+      $statements[] = parse_toplevel_chunk($tokens, $index);
+      continue;
+    }
+
+    throw new SyntaxError(
+      "Unexpected token [{$token->type->name}] at file toplevel: $token "
+      . " only definitions are allowed at the top level"
+    );
+
+  }
+
+  return $statements;
+
+}
+
+enum AstNodeType{
+
+}
+
+class AstNode {
+  public function __construct(
+    public AstNodeType $type,
+    /** @var array<Token> */
+    public array $tokens,
+    /** @var array<AstNode> */
+    public array $children
+  ) {
+  }
+}
+
+class SyntaxError extends Exception { }
+
+class KekTypeError { }
+
+function parse_toplevel_chunk(array &$tokens, int &$index): AstNode|SyntaxError|KekTypeError {
+
+  $identifier = $tokens[$index];
+  $double_colon = $tokens[$index + 1];
+  if ($double_colon->type !== TokenType::DOUBLE_COLON) {
+    throw new SyntaxError("Expected '::' after top level identifier, got $double_colon");
+  }
+
+  $index += 2;
+  $const_expression = parse_const_expression($tokens, $index);
+
+}
+
+// can be a function, a schema, or a field definition
+function parse_const_expression(){}
+
+parse_file($tokens);
+
+
+# type check per file
+# some names are not known -> put them into a list
+# read all other files
+# check that at the end the list is empty
+
+
+# code generation via templates
+
+

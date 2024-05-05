@@ -53,7 +53,7 @@ counter = counter + 1
 
 # We define a function
 
-myFunction :(Int)->Int = fn(a:Int)->Int{
+myFunction :: fn(a:Int)->Int{
     return a + 1
 }
 
@@ -78,7 +78,7 @@ constList : const List[Int] = const [1,2,3,4,5]
 constList2 := const [1,2,3,4,5]
 
 # generic schema
-Container : Type[T1, T2] = schema(T1, T2){
+Container :: schema(T1, T2){
     name:T1 = ---
     age:T2 = 1
 }
@@ -89,19 +89,19 @@ myContainer : Container[String, Int] = Container[String, Int]{
 }
 
 # generic interface
-MyInterface : Type[T1, T2] = interface[T1, T2]{
+MyInterface :: = interface[T1, T2]{
     fn get_name:(self)->T1 = ---
     fn get_age:(self)->T2 = ---
 }
 
 # we can define a schema
-User: Type = schema{
+User :: schema{
     name:String = ""
     age:Int = 1
 }
 
 # we can create a new object
-myObject: Map = object{
+myObject := object{
     name = "John"
     age = 20
 }
@@ -123,6 +123,10 @@ check := fn(const self:Map, _schema:Type) -> nil!TypeError {
     if not self::is(_schema) {
         error TypeError("Object does not match schema")
     }
+}
+
+for i, v in myMap (){
+    print(i, v)
 }
 
 pub var battle := object{

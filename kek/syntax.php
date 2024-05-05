@@ -1,8 +1,48 @@
 <?php
 
+/**
+ * EXPRESSION ::= LITERAL | FUNCTION_CALL
+ */
 $EXPRESSION = [];
 
+/**
+ * DEFINITION ::= IDENTIFIER COLON COLON [FUNCTION | SCHEMA | INTERFACE]
+ */
+$DEFINITION = [];
+
+/**
+ * END_OF_SCOPE ::= RETURN | BREAK | CONTINUE
+ */
+
+/**
+ * SCOPE ::= '(' [IDENTIFIER] ')' [ARROW TYPE_EXPRESSION] '{' {EXPRESSION} [END_OF_SCOPE] '}'
+ */
+
+/**
+ * DEFINITION ::= IDENTIFIER COLON TYPE_EXPRESSION EQUALS EXPRESSION
+ */
+
+/**
+ * SCHEMA ::= 'schema' '{' {USE IDENTIFIER} {DEFINITION} '}'
+ */
+
+/**
+ *
+ */
+
+/**
+ * FUNCTION ::= FN SCOPE
+ */
+$FUNCTION = [];
+
+/**
+ * FOR ::= FOR IDENTIFIER COMMA IDENTIFIER IN EXPRESSION SCOPE
+ */
+$FOR = [];
+
 $SCHEMA = [];
+
+$TYPE_EXPRESSION = [];
 
 $LITERAL = [
   [
@@ -14,9 +54,6 @@ $LITERAL = [
     MapLiteral::class
   ]
 ];
-
-$TYPE_EXPRESSION = [];
-
 
 $DEFINITION = [
   [OPTIONAL, Keywords::_PUB],
@@ -46,6 +83,10 @@ $SCOPE_ARG_LIST = [
   TokenType::CLOSE_PAREN
 ];
 
+$MODULE = [
+  [MULTIPLE, &$DEFINITION]
+];
+
 # -><typeExpression>
 $SCOPE_RETURN_TYPE = [
   TokenType::ARROW,
@@ -58,7 +99,7 @@ $SCOPE = [
   [OPTIONAL, $SCOPE_RETURN_TYPE],
   TokenType::OPEN_BRACE,
   [MULTIPLE, &$EXPRESSION],
-  [&$END_OF_SCOPE],
+  [OPTIONAL,&$END_OF_SCOPE],
   TokenType::CLOSE_BRACE
 ];
 
