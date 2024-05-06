@@ -42,6 +42,10 @@
 
 # how to do meta structure of code??
 
+
+# only const values can be exported from the module
+# exports are done with pub
+
 # Comment
 # object composition -> done
 # interface -> done, via schema
@@ -167,7 +171,7 @@ main.kek
 myObject.is(User)
 
 # we can define a schema
-User :: schema{
+pub User :: schema{
     name:String = ---
     age:Int = ---
 

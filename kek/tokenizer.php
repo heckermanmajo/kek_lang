@@ -1,12 +1,25 @@
 <?php
 
-include "data.php";
+include_once "data.php";
 
 
 function analyze_non_sign_word(string $word, int $line, int $column): Token {
   if (is_numeric($word)) {
     return new Token(TokenType::NUMBER_LITERAL, $word, $line, $column);
   }
+
+  if ($word === "true" || $word === "false") {
+    return new Token(TokenType::BOOL_LITERAL, $word, $line, $column);
+  }
+
+  if(is_keyword($word, true)){
+    return new Token(TokenType::KEYWORD, $word, $line, $column);
+  }
+
+  if(is_keyword($word, false)){
+    return new Token(TokenType::TYPE_KEYWORD, $word, $line, $column);
+  }
+
   return new Token(TokenType::IDENTIFIER, $word, $line, $column);
 }
 
@@ -188,7 +201,7 @@ KEK
 
                                  { ... } # Anonymous code block
                       () { ... } # Captured code block without return
-                     () -> float { ... } # Captured code block 
+                     () -> float { ... } # Captured code block that can return
      fn(i: int) -> float  { ... } # Anonymous function
 f :: fn(i: int) -> float  { ... } # Named local function
 f :: fn(i: int) -> float  { ... } # Named global function
@@ -257,184 +270,23 @@ $tokens = tokenize_first($code, get_signs());
 $tokens = collapse_strings($tokens);
 $tokens = collapse_comments($tokens);
 
-foreach ($tokens as $token) {
-  echo $token . "\n";
-}
-
-exit();
-
-# helper functions for parsing
-/**
- * This functions allows to look forward in the token stream.
- *
- * @throws SyntaxError
- */
-function look_forward(
-  array $tokens,
-  int $num,
-  bool $throw_on_end = true
-): ?TokenType {
-  if (count($tokens) <= $num) {
-    if ($throw_on_end) {
-      throw new SyntaxError("Unexpected end of file");
+function tokenize(string $code, bool $verbose = false): array {
+  $tokens = tokenize_first($code, get_signs());
+  $tokens = collapse_strings($tokens);
+  $tokens = collapse_comments($tokens);
+  if ($verbose) {
+    foreach ($tokens as $token) {
+      echo $token . "\n";
     }
-    return null;
   }
-  return $tokens[$num]->type;
+  return $tokens;
 }
 
-function look_backward(
-  array $tokens,
-  int $num,
-  bool $throw_on_end = true
-): ?TokenType {
-  if ($num < 0) {
-    if ($throw_on_end) {
-      throw new SyntaxError("Unexpected start of file");
-    }
-    return null;
-  }
-  return $tokens[$num]->type;
-}
-
-/**
- * This function allows to look forward in the token stream
- * and expect a certain token type.
- *
- * @param array $tokens
- * @param int $num
- * @param TokenType $tokenType
- * @param string $error_message
- * @return void
- */
-function expect_forward(
-  array $tokens,
-  int $num,
-  TokenType $tokenType,
-  string $error_message
-) {
-  $next_token = look_forward($tokens, $num);
-  if ($next_token !== $tokenType) {
-    throw new SyntaxError($error_message);
+if (count(debug_backtrace()) == 0){
+  foreach ($tokens as $token) {
+    echo $token . "\n";
   }
 }
-
-/**
- * Check if the next token is a non-semantic token
- * like a comment or a newline.
- *
- * @param array $tokens
- * @param int $index
- * @return bool
- */
-function next_is_non_semantic_token(
-  array $tokens,
-  int $index
-): bool {
-  return $tokens[$index]->type === TokenType::COMMENT
-    || $tokens[$index]->type === TokenType::MULTILINE_COMMENT
-    || $tokens[$index]->type === TokenType::NEW_LINE
-    || $tokens[$index]->type === TokenType::WHITE_SPACE
-    || $tokens[$index]->type === TokenType::TAB;
-}
-
-/**
- * Skip all non-semantic tokens by incrementing the index
- * until a semantic token is found.
- *
- * @param array $tokens
- * @param int $index
- * @return void
- */
-function skip_non_semantic_tokens(array $tokens, int &$index): void {
-  while (next_is_non_semantic_token($tokens, $index)) {
-    $index++;
-  }
-}
-
-class CompilerState {
-  public function __construct(
-    public array $pre_processor_functions
-  ) {
-  }
-}
-
-/**
- * @param array<Token> $tokens
- * @return array
- * @throws SyntaxError
- */
-function parse_file(array $tokens): array {
-  $statements = [];
-  $index = -1;
-
-  while ($index < count($tokens)) {
-
-    $index++;
-    $token = $tokens[$index];
-
-    if ($token->type === TokenType::NEW_LINE) {
-      $index++;
-      continue;
-    }
-
-    if ($token->type === TokenType::COMMENT || $token->type === TokenType::MULTILINE_COMMENT) {
-      $index++;
-      continue;
-    }
-
-    if ($token->type === TokenType::IDENTIFIER) {
-      $statements[] = parse_toplevel_chunk($tokens, $index);
-      continue;
-    }
-
-    throw new SyntaxError(
-      "Unexpected token [{$token->type->name}] at file toplevel: $token "
-      . " only definitions are allowed at the top level"
-    );
-
-  }
-
-  return $statements;
-
-}
-
-enum AstNodeType{
-
-}
-
-class AstNode {
-  public function __construct(
-    public AstNodeType $type,
-    /** @var array<Token> */
-    public array $tokens,
-    /** @var array<AstNode> */
-    public array $children,
-    public ?AstNode $generated_by = null
-  ) {
-  }
-}
-
-class SyntaxError extends Exception { }
-
-function parse_toplevel_chunk(array &$tokens, int &$index): AstNode|SyntaxError {
-
-  $identifier = $tokens[$index];
-  $double_colon = $tokens[$index + 1];
-  if ($double_colon->type !== TokenType::DOUBLE_COLON) {
-    throw new SyntaxError("Expected '::' after top level identifier, got $double_colon");
-  }
-
-  $index += 2;
-  $const_expression = parse_const_expression($tokens, $index);
-
-}
-
-// can be a function, a schema, or a field definition
-function parse_const_expression(){}
-
-parse_file($tokens);
-
 
 # apply (ast-processor) preprocessor templates and optional compilation
 

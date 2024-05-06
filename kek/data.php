@@ -2,6 +2,9 @@
 
 
 enum TokenType: string {
+  case TYPE_KEYWORD = 'TYPE_KEYWORD';
+
+  case BOOL_LITERAL = 'BOOL_LITERAL';
 
   case WHITE_SPACE = 'WHITE_SPACE';
 
@@ -110,7 +113,8 @@ enum Keywords: string {
   case _CONST = 'const';
   case _FN = 'fn';
   case _INTERFACE = 'interface';
-  case _SCHEMA = 'schema';
+  case _STRUCT = 'struct';
+  case _TRAIT = 'trait';
   case _USE = 'use';
   case _RETURN = 'return';
   case _CONTINUE = 'continue';
@@ -119,15 +123,18 @@ enum Keywords: string {
   case _ELSE_IF = 'elif';
   case _ELSE = 'else';
   case _FOR = 'for';
-  #case _MATCH = 'match';
-  case _SUB = 'sub';
-  case _MAP = 'map';
-  case _LIST = 'list';
   case _ENUM = 'enum';
-  case _CATCH = 'catch';
-  case _RECOVER = 'recover';
   case _IMPLEMENTS = 'implements';
   case _SELF = 'self';
+  case _MODULE = 'module';
+  case _RULESET = 'ruleset';
+  case _ERROR = 'error';
+  case _LIST = 'List';
+  case _MAP = 'Map';
+  case _UNION = 'Union';
+  case _OPTION = 'Option';
+  case _TREE_NODE = 'TreeNode';
+  case _QUEUE = 'Queue';
 }
 
 
@@ -160,4 +167,130 @@ class Token {
     return "($_type|$value:$this->line-$this->column)";
   }
 
+}
+
+
+enum AstNodeType{
+
+  # Int, List(Int), UserDefinedType, List(UserDefinedType)
+  # Int|nil   Int|String|List(Int)
+  # DBResult|Error
+  # *A
+  # !*A
+  # const List(Int)
+  # fn(self)->List(Int)
+  case TYPE_EXPRESSION;
+
+  # string, number, boolean, nil
+  case CONST_EXPRESSION;
+
+  # function all, identifier
+  case EXPRESSION;
+
+  # use (String).<identifier-modulename>::exported_const
+  case USE_MODULE;
+
+  # ruleset(CONSTEXPRESSION)
+  case RULESET;
+
+  # for, if
+  case CONTROL_FLOW;
+
+  # break <number> -> can only breaks out of for
+  # IMPORTANT: can only break loops in the same scope{}
+  case BREAK_STATEMENT;
+
+  # same as break, but continues the loop
+  case CONTINUE_STATEMENT;
+
+  # () -> Int {}, {}, (){}
+  case SCOPE;
+
+  # fn <scope>
+  case FUNCTION_DEFINITION;
+
+  # (a: Int = 1, b: Int = 323)
+  case ARGUMENT_LIST_DEFINITION;
+
+  # (self)   (self: <TypeExpression>)
+  case METHOD_ARGUMENT_LIST_DEFINITION;
+
+  # -> Int
+  case RETURN_TYPE;
+
+  # return <expression>
+  case SCOPE_RETURN;
+
+  # fn (self){}
+  case METHOD_DEFINITION;
+
+  # <identifier> :: <type_expression> = <const_expression>
+  case CONST_MODULE_LEVEL_DEFINITION;
+
+  # <identifier> :: <type_expression> = <expression>
+  case CONST_FUNCTION_LEVEL_DEFINITION;
+
+  # pub CONST_MODULE_LEVEL_DEFINITION
+  case EXPORT;
+
+  # struct{ use Trait \n implements Interface \n a: Int = 10 \n b: String = "Hello" }
+  case STRUCT_DEFINITION;
+
+  # trait { a: Int = 10 \n b: String = "Hello" }
+  case TRAIT_DEFINITION;
+
+  # interface { tostring: fn(self)->String }
+  case INTERFACE_DEFINITION;
+
+  # implements <interface_name>
+  case IMPLEMENTS_INTERFACE;
+
+  # use <trait_name>
+  case USE_TRAIT;
+
+  case IDENTIFIER;
+}
+
+class AstNode {
+  public function __construct(
+    public AstNodeType $type,
+    /** @var array<Token> */
+    public array $tokens,
+    /** @var array<AstNode> */
+    public array $children,
+    public ?AstNode $generated_by = null
+  ) {
+  }
+}
+
+class SyntaxError extends Exception { }
+
+class CompilerState {
+  public function __construct(
+    public array $pre_processor_functions
+  ) {
+  }
+}
+
+class TypeExpression extends AstNode {
+}
+
+class IdentifierNode extends AstNode {
+  public bool $is_all_uppercase;
+  public bool $starts_with_uppercase;
+  public ?TypeExpression $type_expression;
+}
+
+function is_keyword(string $string, bool $ignore_types): bool{
+  foreach (Keywords::cases() as $keyword) {
+    if ($string === $keyword->value) {
+      if($ignore_types){
+        if(in_array($string, ["List", "Map", "Error", "Union", "Option", "Queue", "TreeNode"])){
+          continue;
+        }
+      }
+      return true;
+    }
+  }
+  return false;
 }
