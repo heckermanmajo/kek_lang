@@ -1,11 +1,8 @@
 # Keklang
 
-Language to be transpiled into js and php.
-
-1. split into chars.
-2. Merge them into tokens.
-3. Consume tokens.
-4. Create AST-Nodes.
+## Pre-processor
+-> der trick ist restriktiv zu sein um keine zweite Sprache zu bauen.
+-> Und um missbrauch aller c-macros zu verhindern
 
 ## Hierarchy
 -> was ist nötig für den MVP der sprache und dann den rest darauf aufbauen.

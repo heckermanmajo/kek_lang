@@ -1,4 +1,7 @@
 
+# END GOAL
+# very nice static analysis
+
 # interface -> methods
 # schema -> fields
 
@@ -35,7 +38,7 @@
 # objects, etc.
 
 # add constraints to the module
-module node "main" "state" "system" "logic" "data"
+@import("std.out")
 
 # how to do meta structure of code??
 
@@ -87,18 +90,182 @@ myContainer : Container[String, Int] = Container[String, Int]{
     name = "John"
     age = 20
 }
+main.kek
 
-# generic interface
-MyInterface :: = interface[T1, T2]{
-    fn get_name:(self)->T1 = ---
-    fn get_age:(self)->T2 = ---
+# per file, and need to be at the top
+# wecan disallow all language fesatures
+@disallow("functions_as_value")
+@disallow("lib.file")
+@disallow("feature_x")
+@disallowall()
+
+@allow("range")
+
+# this is counted recursive
+@rule("for_loop_max", 1000)
+#@rule("for_loop_depth", 3)
+
+@import("std.out")
+
+# after lock settings no more settings can be set
+# otherwise an compile error is thrown
+@locksettings
+
+@define(type_name, t1, t2) KOT
+     $(type_name) :: interface{
+        .get_name :: fn(self)->$(t1)
+        .get_age :: fn(self)->$(t2)
+     }
+@end_define
+
+@when(@DEBUG){
+
 }
+
+@template Option(type_name, type) -> Code{
+
+    $(type_name) :: schema{
+
+        value: ?$(type) = ---
+        is_nil: Bool = false
+
+        none :: fn()->$(type_name)->$(type_name){
+            return $(type_name){
+                value = nil,
+                is_nil = true
+            }
+        }
+
+        some :: fn(value:$(type))->$(type_name){
+            return $(type_name){
+                value = value,
+                is_nil = false
+            }
+        }
+
+    }
+
+}
+
+# no nested templates allowed ...
+@template MyInterface(
+    type_name,
+    t1,
+    t2
+) -> Code {
+     $(type_name) :: interface{
+        .get_name :: fn(self)->$(t1)
+        .get_age :: fn(self)->$(t2)
+     }
+}
+
+@@MyInterface(MyInterface_Str_I, String, Int)
+
+@@ -> mcro where it is called
+@ -> macro where it is defined
+
+myObject.is(User)
 
 # we can define a schema
 User :: schema{
-    name:String = ""
-    age:Int = 1
+    name:String = ---
+    age:Int = ---
+
+    .print := fn(const self) -> ?Bool {
+        print("User: " + self.name + " " self.age)
+    }
+
 }
+@@List(ListOfUser, User)
+
+
+
+user_factory :: fn(name:String, age:Int)-> ?User {
+    if age < 0 {
+        return OptionalUser.none()
+    }
+    return User{
+        name = name
+        age = age
+    }
+}
+
+result: User|nil = user_factory("lol", 1)
+if(result?nil){
+    print("User is nil")
+}
+# you can pass a option directly into an if statement
+if(user := result?User){
+    print("User is not nil" + user.name)
+}
+
+Error :: schema{
+    message:String = ---
+    trace: String = ---
+    file_position: String = ---
+
+    kek :: fn(message:String, line:String=@@line, file:String=@@file)->Error{
+        return Error{
+            message = message,
+            trace = get_trace(),
+            line = line,
+            file = file
+        }
+    }
+
+    print_trace :: fn(const self) -> nil {
+        print("Error: " + self.message)
+    }
+}
+
+Error.kek("lol").print_trace()
+
+# built in union type
+u: User|ArrayOfUser|Error = user_factory("lol", 1)
+if(u?Error){
+    print("Error: ", u)
+}
+elif(user := u?User){
+    user.print_name()
+}
+elif(arr := u?ArrayOfUser){
+    for user in arr {
+        user.print_name()
+    }
+}
+
+lol := 1
+
+# definitiosn are local but can acccees all vars from outiside
+{
+}
+
+# capture block cannot access variables from the outer scope
+# only constants
+
+(){
+
+
+}
+
+# capture block without -> return type
+# will return outer function if contains return
+(){
+
+  print(lol)
+
+  u1: User|ArrayOfUser|Error = user_factory("lol", 1)
+  if(u?Error){return Error}
+
+  u2: User|ArrayOfUser|Error = user_factory("lol", 1)
+  if(u?Error){return Error}
+
+  u3: User|ArrayOfUser|Error = user_factory("lol", 1)
+  if(u?Error){return Error}
+
+}
+
+
 
 # we can create a new object
 myObject := object{
@@ -106,7 +273,7 @@ myObject := object{
     age = 20
 }
 
-isUser : Bool = myObject::is(User)
+isUser : Bool = myObject.is(User)
 myUser : User = cast(myObject, User)
 myUser2: User = User{
     name = "John"
@@ -115,12 +282,12 @@ myUser2: User = User{
 
 # self is mutable by default
 # all other variables are immutable by default
-is := fn(const self:Map, _schema:Type) -> Bool {
+Map.is := fn(const self, const _schema:Type) -> Bool {
     return _schema in self.__schemas
 }
 
 check := fn(const self:Map, _schema:Type) -> nil!TypeError {
-    if not self::is(_schema) {
+    if not self.is(_schema) {
         error TypeError("Object does not match schema")
     }
 }
@@ -129,7 +296,7 @@ for i, v in myMap (){
     print(i, v)
 }
 
-pub var battle := object{
+pub battle := object{
 
     player: Player = Player{
         name = "John"
@@ -145,20 +312,23 @@ pub var battle := object{
 
 # we now can create a "class" with a "constructor"
 # without any magic
-Person := {
-    Type = schema{
+Person :: schema{
         implements HelloSayer # implements interface: compiler looks for the needed methods
+        use User # needs to set the user values
+
         name:String = "default name"
         # age need to be set in the constructor
         age:Int = ---
-    },
-    new = fn(name:String, age:Int)->Person.Type{
-        return Person.Type{
-            name = name
-            age = age
+
+        new :: fn(name:String, age:Int)-> Person{
+           return Person{
+             name = name
+             age = age
+           }
         }
-    },
+    }
 }
+
 
 # create a method -> first parameter is self
 sayHello : (self:Person.Type)->String = fn(const self:Person.Type)->String{
@@ -167,8 +337,9 @@ sayHello : (self:Person.Type)->String = fn(const self:Person.Type)->String{
 
 # create a new person and call the method
 john = Person.new("John", 20)
-john::sayHello() # the method call syntax is different, to avoid confusion with the function call
+john.sayHello() # the method call syntax is different, to avoid confusion with the function call
 # :: passes the object as the first parameter
+json.print()
 
 # we can define needed methods in interfaces
 HelloSayer : Type = interface{
@@ -192,7 +363,9 @@ for i in range(0,10) {
     print(i)
 }
 
-myUsers : const List[User] = const [
+
+
+myUsers : const ListOfUser = const [
     User{
         name = "John"
         age = 20
@@ -205,7 +378,7 @@ myUsers : const List[User] = const [
 
 for index, user in myUsers {
     print(index, user)
-    user::check(User) # check if the user is a User, crash if not
+    user.check(User) # check if the user is a User, crash if not
 }
 
 ## error handling
@@ -218,7 +391,7 @@ for index, user in myUsers {
 # forloops -> lists or maps
 for index:Int, user:User in myUsers {
     print(index, user)
-    user::check(User) catch(e: TypeError){
+    user.check(User) catch(e: TypeError){
       print("Error: ", e)
       exit(1)
     }

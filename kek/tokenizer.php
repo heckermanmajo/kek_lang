@@ -187,10 +187,12 @@ $code = <<<CODE
 KEK
 
                                  { ... } # Anonymous code block
-                       [capture] { ... } # Captured code block
-     (i: int) -> float [capture] { ... } # Anonymous function
-f :: (i: int) -> float [capture] { ... } # Named local function
-f :: (i: int) -> float [capture] { ... } # Named global function
+                      () { ... } # Captured code block without return
+                     () -> float { ... } # Captured code block 
+     fn(i: int) -> float  { ... } # Anonymous function
+f :: fn(i: int) -> float  { ... } # Named local function
+f :: fn(i: int) -> float  { ... } # Named global function
+f :: fn(self: MyType, i: int) -> float [capture] { ... } # Method
 
 we can use a struct later on ...
 MyStruct :: struct {
@@ -259,18 +261,101 @@ foreach ($tokens as $token) {
   echo $token . "\n";
 }
 
-class StringLiteral { }
+exit();
 
-function look_forward(array $tokens, int $num, bool $throw_on_end = true): TokenType { }
-
-function expect_foreword(array $tokens, int $num, TokenType $tokenType, string $error_message) {
-  # do we have reached the end? ...
+# helper functions for parsing
+/**
+ * This functions allows to look forward in the token stream.
+ *
+ * @throws SyntaxError
+ */
+function look_forward(
+  array $tokens,
+  int $num,
+  bool $throw_on_end = true
+): ?TokenType {
+  if (count($tokens) <= $num) {
+    if ($throw_on_end) {
+      throw new SyntaxError("Unexpected end of file");
+    }
+    return null;
+  }
+  return $tokens[$num]->type;
 }
 
-function next_is_non_semantic_token(array $tokens, int $index): bool { }
+function look_backward(
+  array $tokens,
+  int $num,
+  bool $throw_on_end = true
+): ?TokenType {
+  if ($num < 0) {
+    if ($throw_on_end) {
+      throw new SyntaxError("Unexpected start of file");
+    }
+    return null;
+  }
+  return $tokens[$num]->type;
+}
+
+/**
+ * This function allows to look forward in the token stream
+ * and expect a certain token type.
+ *
+ * @param array $tokens
+ * @param int $num
+ * @param TokenType $tokenType
+ * @param string $error_message
+ * @return void
+ */
+function expect_forward(
+  array $tokens,
+  int $num,
+  TokenType $tokenType,
+  string $error_message
+) {
+  $next_token = look_forward($tokens, $num);
+  if ($next_token !== $tokenType) {
+    throw new SyntaxError($error_message);
+  }
+}
+
+/**
+ * Check if the next token is a non-semantic token
+ * like a comment or a newline.
+ *
+ * @param array $tokens
+ * @param int $index
+ * @return bool
+ */
+function next_is_non_semantic_token(
+  array $tokens,
+  int $index
+): bool {
+  return $tokens[$index]->type === TokenType::COMMENT
+    || $tokens[$index]->type === TokenType::MULTILINE_COMMENT
+    || $tokens[$index]->type === TokenType::NEW_LINE
+    || $tokens[$index]->type === TokenType::WHITE_SPACE
+    || $tokens[$index]->type === TokenType::TAB;
+}
+
+/**
+ * Skip all non-semantic tokens by incrementing the index
+ * until a semantic token is found.
+ *
+ * @param array $tokens
+ * @param int $index
+ * @return void
+ */
 function skip_non_semantic_tokens(array $tokens, int &$index): void {
   while (next_is_non_semantic_token($tokens, $index)) {
     $index++;
+  }
+}
+
+class CompilerState {
+  public function __construct(
+    public array $pre_processor_functions
+  ) {
   }
 }
 
@@ -324,16 +409,15 @@ class AstNode {
     /** @var array<Token> */
     public array $tokens,
     /** @var array<AstNode> */
-    public array $children
+    public array $children,
+    public ?AstNode $generated_by = null
   ) {
   }
 }
 
 class SyntaxError extends Exception { }
 
-class KekTypeError { }
-
-function parse_toplevel_chunk(array &$tokens, int &$index): AstNode|SyntaxError|KekTypeError {
+function parse_toplevel_chunk(array &$tokens, int &$index): AstNode|SyntaxError {
 
   $identifier = $tokens[$index];
   $double_colon = $tokens[$index + 1];
@@ -352,12 +436,15 @@ function parse_const_expression(){}
 parse_file($tokens);
 
 
+# apply (ast-processor) preprocessor templates and optional compilation
+
+
 # type check per file
 # some names are not known -> put them into a list
 # read all other files
 # check that at the end the list is empty
 
 
-# code generation via templates
+# js/php (c) code generation via phptmplates
 
 

@@ -57,6 +57,16 @@ enum TokenType: string {
 
   case SEMICOLON = 'SEMICOLON';
 
+  case DOLLAR = 'DOLLAR';
+
+  case AT_SIGN = 'AT_SIGN';
+
+  case DOUBLE_AT_SIGN = 'DOUBLE_AT_SIGN';
+
+  case QUESTION_MARK = 'QUESTION_MARK';
+
+  case EXCLAMATION_MARK = 'EXCLAMATION_MARK';
+
 }
 
 function get_signs() : array {
@@ -70,6 +80,24 @@ function get_signs() : array {
     "'" => TokenType::STRING_LITERAL_SINGLE,
     "\\\"" => TokenType::STRING_ESCAPE_DOUBLE,
     "\\'" => TokenType::STRING_ESCAPE_SINGLE,
+    ":" => TokenType::COLON,
+    "=" => TokenType::EQUALS,
+    "," => TokenType::COMMA,
+    "(" => TokenType::OPEN_PAREN,
+    ")" => TokenType::CLOSE_PAREN,
+    "{" => TokenType::OPEN_BRACE,
+    "}" => TokenType::CLOSE_BRACE,
+    "[" => TokenType::OPEN_BRACKET,
+    "]" => TokenType::CLOSE_BRACKET,
+    "->" => TokenType::ARROW,
+    "::" => TokenType::DOUBLE_COLON,
+    "." => TokenType::DOT,
+    ";" => TokenType::SEMICOLON,
+    "$" => TokenType::DOLLAR,
+    "@" => TokenType::AT_SIGN,
+    "@@" => TokenType::DOUBLE_AT_SIGN,
+    "?" => TokenType::QUESTION_MARK,
+    "!" => TokenType::EXCLAMATION_MARK,
   ];
   return $signs;
 }
@@ -79,7 +107,6 @@ enum StatementType: string {
 
 enum Keywords: string {
   case _PUB = 'pub';
-  case _VAR = 'var';
   case _CONST = 'const';
   case _FN = 'fn';
   case _INTERFACE = 'interface';
@@ -92,21 +119,17 @@ enum Keywords: string {
   case _ELSE_IF = 'elif';
   case _ELSE = 'else';
   case _FOR = 'for';
-  case _MATCH = 'match';
+  #case _MATCH = 'match';
   case _SUB = 'sub';
-  case _OBJECT = 'object';
+  case _MAP = 'map';
+  case _LIST = 'list';
   case _ENUM = 'enum';
   case _CATCH = 'catch';
   case _RECOVER = 'recover';
   case _IMPLEMENTS = 'implements';
   case _SELF = 'self';
-  case _MODULE = 'module';
 }
 
-
-const ONE_OF = "one_of";
-const MULTIPLE = "multiple";
-const OPTIONAL = "optional";
 
 class Token {
 
@@ -136,48 +159,5 @@ class Token {
     }
     return "($_type|$value:$this->line-$this->column)";
   }
-
-}
-
-
-abstract class Statement {
-  public int $start_index;
-  public int $end_index;
-  public StatementType $type; # enum
-  /** @var array<Statement> */
-  public array $statements;
-  public int $line;
-  public int $column;
-  public string $value = "";
-
-  /**
-   * @param array<Token> $tokens
-   * @param int $index
-   * @return static|null
-   */
-  static function parse(array $tokens, int $index): ?static {
-
-    # todo
-    # implement the parsing of the syntax here
-    return null;
-
-  }
-
-  /**
-   * Each statement has a type signature, wich is a string
-   * that can be used to compare the type of two statements
-   * for compatibility.
-   */
-  abstract public function get_type_signature(): string;
-
-  /**
-   * Based on the type of statement, the type checker, checks that my
-   * type is compatible with the type of my sub-statements.
-   */
-  abstract public function type_check();
-
-  abstract public function to_js();
-
-  public function to_php() { }
 
 }
