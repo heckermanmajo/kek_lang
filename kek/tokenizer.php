@@ -279,7 +279,20 @@ function tokenize(string $code, bool $verbose = false): array {
       echo $token . "\n";
     }
   }
-  return $tokens;
+
+  $ret = [];
+  foreach($tokens as $token){
+    if($token->type === TokenType::COMMENT
+      || $token->type === TokenType::MULTILINE_COMMENT
+      || $token->type === TokenType::NEW_LINE
+      || $token->type === TokenType::WHITE_SPACE
+      || $token->type === TokenType::TAB){
+      continue;
+    }
+    $ret[] = $token;
+  }
+
+  return $ret;
 }
 
 if (count(debug_backtrace()) == 0){

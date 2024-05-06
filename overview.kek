@@ -1,7 +1,7 @@
 # one folder is one module
 # we can have one build module
 # once we have build the compiler itself in kek
-module test:js # or module test:c or module test:php
+module("test", "js") # or module test:c or module test:php
 
 ruleset("max_for_loop_iterations", 100 )
 ruleset("rulename", "some const expression")
@@ -31,7 +31,7 @@ ruleset("freeze_ruleset")
 
 # this is a function that is defined in the compiler code
 # -> f.e. in the php, js or c code.
-pub getDomNode :: extern fn(String)->DomNode
+extern pub getDomNode :: fn(String)->DomNode
 
 
 
@@ -201,7 +201,7 @@ main::fn(){
     if(err:Error= bad_function()?Error){ # a ref that is not nil
        print(
            err.line
-           err.file
+           err.file(1 2 34 5 56)
            err.function
            err.function_state
            err.trace

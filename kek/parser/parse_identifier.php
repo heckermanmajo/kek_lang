@@ -1,8 +1,8 @@
 <?php
 
-include_once "data.php";
-include_once "tokenizer.php";
-include_once "parser_helper.php";
+include_once __DIR__ . "/../data.php";
+include_once __DIR__ . "/../tokenizer.php";
+include_once __DIR__ . "/../parser_helper.php";
 
 /**
  * @param array<Token> $tokens
@@ -29,22 +29,31 @@ function parse_identifier(array &$tokens, int &$index, bool $can_be_type = false
 
 if (count(debug_backtrace()) == 0){
   $type_expression = "moin";
-  $tokens = tokenize($type_expression, verbose: true);
+  $tokens = tokenize($type_expression, verbose: false);
 
   $index = 0;
   $node = parse_identifier($tokens, $index);
-  var_dump($node);
+  #var_dump($node);
+
+  $node->print_as_tree();
 
   try{
     $index = 0;
     $type_expression = "fn";
-    $tokens = tokenize($type_expression, verbose: true);
+    $tokens = tokenize($type_expression, verbose: false);
     $node = parse_identifier($tokens, $index);
-    var_dump($node);
+    #var_dump($node);
   } catch (SyntaxError $e) {
+    #echo "GOT EXPECTED ERROR: \n";
+    #echo $e->getMessage() ."\n";
+    #echo "LOL";
+  } catch (Exception $e) {
+    echo "GOT UNEXPECTED ERROR: \n";
     echo $e->getMessage() ."\n";
-    echo "LOL";
+    throw new Exception("Test failed");
   }
+
+  echo "All tests passed☑️\n";
 
 }
 

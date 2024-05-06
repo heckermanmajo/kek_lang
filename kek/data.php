@@ -249,6 +249,8 @@ enum AstNodeType{
   case USE_TRAIT;
 
   case IDENTIFIER;
+
+  case CALL_ARGUMENT_LIST;
 }
 
 abstract class AstNode {
@@ -267,7 +269,11 @@ abstract class AstNode {
   public function print_as_tree(int $indent = 0){
     // display the ast node in nice s format
     $indent_str = str_repeat("   ", $indent);
-    echo $indent_str . $this->type->name . "\n";
+    $token_value = "";
+    if($this->tokens[0] ?? false){
+      $token_value = $this->tokens[0]->value;
+    }
+    echo $indent_str . $this->type->name. " : ". $token_value . "\n";
     foreach($this->children as $child){
       $child->print_as_tree($indent + 1);
     }
@@ -277,13 +283,13 @@ abstract class AstNode {
   # collect rules
   # rules are per module, so the module node is the root of the analysis.
   # the use statements -> need will be parsed
-  abstract public function init_execution_context(): string;
+  #abstract public function init_execution_context(): string;
 
-  abstract public function get_type(): string;
+  #abstract public function get_type(): string;
 
-  abstract public function render_js(): string;
+  #abstract public function render_js(): string;
 
-  abstract public function render_php(): string;
+  #abstract public function render_php(): string;
 
 }
 
@@ -307,6 +313,12 @@ class IdentifierNode extends AstNode {
   public bool $is_all_uppercase;
   public bool $starts_with_uppercase;
   public ?TypeExpression $type_expression;
+}
+
+class ExpressionNode extends AstNode {
+}
+
+class CallArgumentListNode extends AstNode {
 }
 
 function is_keyword(string $string, bool $ignore_types): bool{
