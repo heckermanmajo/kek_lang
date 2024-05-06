@@ -251,16 +251,44 @@ enum AstNodeType{
   case IDENTIFIER;
 }
 
-class AstNode {
+abstract class AstNode {
   public function __construct(
     public AstNodeType $type,
     /** @var array<Token> */
     public array $tokens,
     /** @var array<AstNode> */
     public array $children,
-    public ?AstNode $generated_by = null
+    public ?AstNode $generated_by = null,
+    public ?AstNode $parent = null,
+    public ?ExecutionContext $context = null
   ) {
   }
+
+  public function print_as_tree(int $indent = 0){
+    // display the ast node in nice s format
+    $indent_str = str_repeat("   ", $indent);
+    echo $indent_str . $this->type->name . "\n";
+    foreach($this->children as $child){
+      $child->print_as_tree($indent + 1);
+    }
+  }
+
+  # collect all defintions -> all variable names
+  # collect rules
+  # rules are per module, so the module node is the root of the analysis.
+  # the use statements -> need will be parsed
+  abstract public function init_execution_context(): string;
+
+  abstract public function get_type(): string;
+
+  abstract public function render_js(): string;
+
+  abstract public function render_php(): string;
+
+}
+
+class ExecutionContext{
+
 }
 
 class SyntaxError extends Exception { }

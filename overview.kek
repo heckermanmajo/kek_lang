@@ -29,6 +29,12 @@ ruleset("disable_use")
 ruleset("freeze_ruleset")
 # after this we cannot change rules anything
 
+# this is a function that is defined in the compiler code
+# -> f.e. in the php, js or c code.
+pub getDomNode :: extern fn(String)->DomNode
+
+
+
 # define a const
 MyConst :: 800
 
