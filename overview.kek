@@ -52,6 +52,7 @@ myFunc :: fn(a: Int, b: Int) -> Int {
 # only types are allowed to start with a capital letter
 
 # trait allows to share functionality
+#  but also to act like an interface
 DataObject :: trait {
 
     table_name :: String
@@ -222,7 +223,7 @@ main::fn(){
         return error("Something went wrong")
     }
 
-    if(err:Error= bad_function()?Error){ # a ref that is not nil
+    if err:Error = bad_function() ? Error { # a ref that is not nil
        print(
            err.line
            err.file(1 2 34 5 56)
@@ -231,6 +232,15 @@ main::fn(){
            err.trace
        )
     }
+
+    if 12 == lol(foo()) {
+        print("Hello")
+    }
+
+    # expression  lol(), 1 ""
+    # expression-term
+
+    name :: ( - 1 + 2) * lol() - 123
 
 
     if(u?Error){ # a ref that is not nil
@@ -329,6 +339,9 @@ bar :: fn() {
     # which is not local
     # and you cannot pass it to a function that is not local
     # and cou cannot return it
+
+    # you need to discard return values ...
+    _ = foo()
 
 }
 

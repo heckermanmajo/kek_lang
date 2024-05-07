@@ -66,9 +66,9 @@ enum TokenType: string {
 
   case DOUBLE_AT_SIGN = 'DOUBLE_AT_SIGN';
 
-  case QUESTION_MARK = 'QUESTION_MARK';
-
-  case EXCLAMATION_MARK = 'EXCLAMATION_MARK';
+  case UNARY_OPERATOR = 'UNARY_OPERATOR';
+  case BINARY_OPERATOR = 'BINARY_OPERATOR';
+  case UNARY_BINARY_OPERATOR = 'UNARY_BINARY_OPERATOR';
 
 }
 
@@ -99,8 +99,19 @@ function get_signs() : array {
     "$" => TokenType::DOLLAR,
     "@" => TokenType::AT_SIGN,
     "@@" => TokenType::DOUBLE_AT_SIGN,
-    "?" => TokenType::QUESTION_MARK,
-    "!" => TokenType::EXCLAMATION_MARK,
+    "?" => TokenType::BINARY_OPERATOR,
+    " not " => TokenType::UNARY_OPERATOR,
+    " and " => TokenType::BINARY_OPERATOR,
+    " or " => TokenType::BINARY_OPERATOR,
+    "-" => TokenType::UNARY_BINARY_OPERATOR,
+    "+" => TokenType::BINARY_OPERATOR,
+    "*" => TokenType::BINARY_OPERATOR,
+    "/" => TokenType::BINARY_OPERATOR,
+    "%" => TokenType::BINARY_OPERATOR,
+    "==" => TokenType::BINARY_OPERATOR,
+    "!=" => TokenType::BINARY_OPERATOR,
+    "**" => TokenType::BINARY_OPERATOR,
+    "//" => TokenType::BINARY_OPERATOR,
   ];
   return $signs;
 }
@@ -280,3 +291,7 @@ class TypeArgumentListNode extends AstNode {}
 class ReturnTypeNode extends AstNode {}
 
 class ConstDefinitionNode extends AstNode {}
+
+class IfNode extends AstNode {}
+
+class ExpressionTermNode extends AstNode {}

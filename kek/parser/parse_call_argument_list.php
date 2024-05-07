@@ -3,7 +3,7 @@
 include_once __DIR__ . "/../data.php";
 include_once __DIR__ . "/../tokenizer.php";
 include_once __DIR__ . "/../parser_helper.php";
-include_once __DIR__ . "/parse_expression.php";
+include_once __DIR__ . "/parse_expression_term.php";
 
 
 /**
@@ -28,7 +28,7 @@ function parse_call_argument_list(array $tokens, int &$index): CallArgumentListN
   if (!$is_close_parenthesis) {
 
     while (true) {
-      $node = parse_expression($tokens, $index);
+      $node = parse_expression_term($tokens, $index);
       $ast_expression_node->children[] = $node;
 
       if ($index >= count($tokens)) {

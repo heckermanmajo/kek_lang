@@ -248,6 +248,17 @@ if (count(debug_backtrace()) == 0) {
   $node->print_as_tree();
 
 
+  $expression = " a + b ( ) ";
+  echo "\n---------------------------------\n";
+  echo $expression ."\n";
+  echo "---------------------------------\n";
+  $tokens = tokenize($expression, verbose: false);#
+  $index = 0;
+  $node = parse_expression_term($tokens, $index);
+  $node->print_as_tree();
+
+
+
   echo "\n---------------------------------\n";
   echo "All EXPRESSION tests passed☑️\n";
   echo "---------------------------------\n";
