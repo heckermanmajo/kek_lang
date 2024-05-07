@@ -3,7 +3,7 @@
 include_once __DIR__ . "/../data.php";
 include_once __DIR__ . "/../tokenizer.php";
 include_once __DIR__ . "/../parser_helper.php";
-include_once __DIR__ . "/parse_expression.php";
+
 
 
 /**
@@ -21,6 +21,10 @@ function parse_if_node(array $tokens, int &$index):IfNode {
 
     $ast_node->tokens[] = $token;
     $index++; # jump over if
+
+    $term = parse_expression_term($tokens, $index);
+
+    # exprect{} _> block
 
 
     return $ast_node;

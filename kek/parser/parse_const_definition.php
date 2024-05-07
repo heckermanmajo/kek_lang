@@ -3,9 +3,7 @@
 include_once __DIR__ . "/../data.php";
 include_once __DIR__ . "/../tokenizer.php";
 include_once __DIR__ . "/../parser_helper.php";
-include_once __DIR__ . "/parse_identifier.php";
 include_once __DIR__ . "/parse_call_argument_list.php";
-include_once __DIR__ . "/parse_dot_access_expression.php";
 include_once __DIR__ . "/parse_value_literal.php";
 
 /**
@@ -78,7 +76,7 @@ function parse_const_definition(array &$tokens, int &$index, bool $can_be_type =
   ## it can be a expression -> this need to be checked in the name resolver
   ## if the assignment is valid
 
-  $expression_node = parse_expression($tokens, $index);
+  $expression_node = parse_expression_term($tokens, $index);
   $node->children[] = $expression_node;
 
 

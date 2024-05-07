@@ -94,7 +94,7 @@ function get_signs() : array {
     "]" => TokenType::CLOSE_BRACKET,
     "->" => TokenType::ARROW,
     "::" => TokenType::DOUBLE_COLON,
-    "." => TokenType::DOT,
+    "." => TokenType::BINARY_OPERATOR,
     ";" => TokenType::SEMICOLON,
     "$" => TokenType::DOLLAR,
     "@" => TokenType::AT_SIGN,
@@ -295,3 +295,13 @@ class ConstDefinitionNode extends AstNode {}
 class IfNode extends AstNode {}
 
 class ExpressionTermNode extends AstNode {}
+
+class ScopeBlockNode extends AstNode {}
+
+class FunctionNode extends AstNode {}
+
+class ForNode extends AstNode {}
+
+class ConstructionLiteralNode extends AstNode {}
+
+class TypeConstructionNode extends AstNode {}
