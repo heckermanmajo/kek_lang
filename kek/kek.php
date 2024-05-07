@@ -1,3 +1,13 @@
 <?php
 
-# parse command line args and read the file ...
+# read file
+
+# tokenize files
+
+# parse file
+
+# name-resolution
+
+# type-checking
+
+# transpile to end-language (php, js, (c, go))

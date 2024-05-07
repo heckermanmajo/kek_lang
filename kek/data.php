@@ -129,12 +129,12 @@ enum Keywords: string {
   case _MODULE = 'module';
   case _RULESET = 'ruleset';
   case _ERROR = 'error';
-  case _LIST = 'List';
+/*  case _LIST = 'List';
   case _MAP = 'Map';
   case _UNION = 'Union';
   case _OPTION = 'Option';
   case _TREE_NODE = 'TreeNode';
-  case _QUEUE = 'Queue';
+  case _QUEUE = 'Queue';*/
 }
 
 
@@ -170,92 +170,22 @@ class Token {
 }
 
 
-enum AstNodeType{
-
-  # Int, List(Int), UserDefinedType, List(UserDefinedType)
-  # Int|nil   Int|String|List(Int)
-  # DBResult|Error
-  # *A
-  # !*A
-  # const List(Int)
-  # fn(self)->List(Int)
-  case TYPE_EXPRESSION;
-
-  # string, number, boolean, nil
-  case CONST_EXPRESSION;
-
-  # function all, identifier
-  case EXPRESSION;
-
-  # use (String).<identifier-modulename>::exported_const
-  case USE_MODULE;
-
-  # ruleset(CONSTEXPRESSION)
-  case RULESET;
-
-  # for, if
-  case CONTROL_FLOW;
-
-  # break <number> -> can only breaks out of for
-  # IMPORTANT: can only break loops in the same scope{}
-  case BREAK_STATEMENT;
-
-  # same as break, but continues the loop
-  case CONTINUE_STATEMENT;
-
-  # () -> Int {}, {}, (){}
-  case SCOPE;
-
-  # fn <scope>
-  case FUNCTION_DEFINITION;
-
-  # (a: Int = 1, b: Int = 323)
-  case ARGUMENT_LIST_DEFINITION;
-
-  # (self)   (self: <TypeExpression>)
-  case METHOD_ARGUMENT_LIST_DEFINITION;
-
-  # -> Int
-  case RETURN_TYPE;
-
-  # return <expression>
-  case SCOPE_RETURN;
-
-  # fn (self){}
-  case METHOD_DEFINITION;
-
-  # <identifier> :: <type_expression> = <const_expression>
-  case CONST_MODULE_LEVEL_DEFINITION;
-
-  # <identifier> :: <type_expression> = <expression>
-  case CONST_FUNCTION_LEVEL_DEFINITION;
-
-  # pub CONST_MODULE_LEVEL_DEFINITION
-  case EXPORT;
-
-  # struct{ use Trait \n implements Interface \n a: Int = 10 \n b: String = "Hello" }
-  case STRUCT_DEFINITION;
-
-  # trait { a: Int = 10 \n b: String = "Hello" }
-  case TRAIT_DEFINITION;
-
-  # interface { tostring: fn(self)->String }
-  case INTERFACE_DEFINITION;
-
-  # implements <interface_name>
-  case IMPLEMENTS_INTERFACE;
-
-  # use <trait_name>
-  case USE_TRAIT;
-
-  case IDENTIFIER;
-
-  case CALL_ARGUMENT_LIST;
+function is_keyword(string $string, bool $ignore_types): bool{
+  foreach (Keywords::cases() as $keyword) {
+    if ($string === $keyword->value) {
+      if($ignore_types){
+        if(in_array($string, ["List", "Map", "Error", "Union", "Option", "Queue", "TreeNode"])){
+          continue;
+        }
+      }
+      return true;
+    }
+  }
+  return false;
 }
 
 abstract class AstNode {
   public function __construct(
-    public AstNodeType $type,
     /** @var array<Token> */
     public array $tokens,
     /** @var array<AstNode> */
@@ -273,7 +203,8 @@ abstract class AstNode {
     if($this->tokens[0] ?? false){
       $token_value = $this->tokens[0]->value;
     }
-    echo $indent_str . $this->type->name. " : ". $token_value . "\n";
+
+    echo $indent_str . static::class. " : ". $token_value . "\n";
     foreach($this->children as $child){
       $child->print_as_tree($indent + 1);
     }
@@ -321,16 +252,31 @@ class ExpressionNode extends AstNode {
 class CallArgumentListNode extends AstNode {
 }
 
-function is_keyword(string $string, bool $ignore_types): bool{
-  foreach (Keywords::cases() as $keyword) {
-    if ($string === $keyword->value) {
-      if($ignore_types){
-        if(in_array($string, ["List", "Map", "Error", "Union", "Option", "Queue", "TreeNode"])){
-          continue;
-        }
-      }
-      return true;
-    }
-  }
-  return false;
+class DotAccessExpressionNode extends AstNode {
 }
+
+class ValueLiteralNode extends AstNode {
+}
+
+class StringLiteralNode extends AstNode {}
+
+class NumberLiteralNode extends AstNode {}
+
+class BoolLiteralNode extends AstNode {}
+
+
+
+# TYPE STUFF
+class TypeExpressionNode extends AstNode {}
+
+class TypeIdentifierNode extends AstNode {}
+
+class TypeFunctionNode extends AstNode {}
+
+class TypeReturnNode extends AstNode {}
+
+class TypeArgumentListNode extends AstNode {}
+
+class ReturnTypeNode extends AstNode {}
+
+class ConstDefinitionNode extends AstNode {}

@@ -12,7 +12,7 @@ include_once __DIR__ . "/../parser_helper.php";
 function parse_identifier(array &$tokens, int &$index, bool $can_be_type = false): AstNode {
 
   $token = $tokens[$index];
-  $node = new IdentifierNode(type:AstNodeType::IDENTIFIER, tokens:[$token], children:[]);
+  $node = new IdentifierNode(tokens:[$token], children:[]);
   $node->is_all_uppercase = ctype_upper($token->value[0]);
   $node->starts_with_uppercase = ctype_upper($token->value[0]);
 

@@ -17,7 +17,7 @@ function look_forward(
     }
     return null;
   }
-  return $tokens[$num]->type;
+  return $tokens[$num-1]->type;
 }
 
 function look_backward(

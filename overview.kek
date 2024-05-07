@@ -13,16 +13,17 @@ ruleset("rulename", "some const expression")
 # with all the dependency-modules
 
 # we can use const stuff from another module
-use ("./path/to_module_folder").module_name::const_value
+use("./path/to_module_folder").module_name.const_value
 
 # we can get stuff from the std lib
-use ("std").module_name::const_value
+use("std").module_name.const_value
 
 # we can get stuff that is defined by the compiler implementation
-use ("dimantic").frontend::*
+# for later a "import all statement"
+use("dimantic").frontend.*
 
 # or like that
-use ("graphics").window::open_window
+use("graphics").window.open_window
 
 ruleset("disable_use")
 # after this we cannot import anything
@@ -31,27 +32,24 @@ ruleset("freeze_ruleset")
 
 # this is a function that is defined in the compiler code
 # -> f.e. in the php, js or c code.
-extern pub getDomNode :: fn(String)->DomNode
-
-
+extern pub getDomNode :: Fn(String)->DomNode
 
 # define a const
-MyConst :: 800
+# CONST-EXPRESSION -> all that cannot be on the left side of an assignment
+my_const :: 800
 
 # pub allows for export outside of the module
-pub ExportedConst :: 800
+pub exported_const :: 800
 
 # define a variable
-MyVar := 100
+my_var := 100
 
 # define a function
 myFunc :: fn(a: Int, b: Int) -> Int {
     return a + b
 }
 
-SaveAble :: interface {
-    save :: fn(self)
-}
+# only types are allowed to start with a capital letter
 
 # trait allows to share functionality
 DataObject :: trait {
@@ -59,6 +57,8 @@ DataObject :: trait {
     table_name :: String
     db_connection :: DataBaseObject
     id: Int
+
+    save_me :: Fn(Self)
 
     save :: fn(self) {
        # more logic ...
@@ -68,9 +68,11 @@ DataObject :: trait {
 }
 
 # define a struct
-User :: struct {
+##
+    This is a doc comment.
+##
+User :: struct{
 
-    implements SaveAble
     use DataObject
 
     table_name :: String = "Users"
@@ -80,13 +82,21 @@ User :: struct {
     name: String
     age: Int
 
-    create_user_fn1 :: fn(name: String, age: Int) -> User {
+    create_user_fn1 :: fn(name: const String, age: const Int) -> local User {
         return User(
            id: 1,
            name: name,
            age: age
         )
     }
+
+     create_user_fn1 :: const fn(name: String, age: Int) -> User {
+         return User(
+            id: 1,
+               name: name,
+               age: age
+            )
+     }
 
     method1 :: fn(const self){
         print("Hello, ", self.name)
@@ -127,10 +137,30 @@ TreeNode(Node)
 Queue(Message)
 
 NodeType :: enum{
-    IntNode
-    FloatNode
-    StringNode
+    IntNode FloatNode StringNode
 }
+
+foo :: fn(){
+
+
+    {
+
+    }
+
+    (){
+
+    }
+
+    () -> Int {
+
+    }
+
+    (i: List(Int)) -> Int {
+
+    }
+
+}
+
 
 # list expression -> need to match the type
 myList := List(User)[]
@@ -140,15 +170,9 @@ myMap := Map(String,User){}
 myObject := User()
 
 
-Union(User,ListOfUser,Error) # short hand for
-User|ListOfUser|Error :: struct {
-    User: User
-    ListOfUser: ListOfUser
-    Error: Error
-}
 
-Union(User|ListOfUser|Error|nil) # short hand for
-User|ListOfUser|Error|nil :: struct {
+Union(User,ListOfUser,Error,nil) # short hand for
+:: struct {
     User: User = ---
     ListOfUser: ListOfUser = ---
     Error: Error = ---
@@ -231,6 +255,13 @@ main::fn(){
 }
 
 
+struct :: A {
+    a: Int
+    b: Float
+    c: String
+}
+
+
 # c struct
 struct :: A {
     a: Int
@@ -250,3 +281,54 @@ OnTheStack :: A(1, 2.0, "hello")
 OnTheHeap :: *A(1, 2.0, "hello")
 # the scope in which sth is passed in is the owner
 # you can pass an const once around
+
+
+# local returns
+# you can set a return type to local
+# which means, that only the direct caller scope can edit
+# the return value
+# and can only pass const version to other functions
+# if you say "local const", it cannot even edit it
+# AND cannot pass it into other functions
+# a receiving function can only set this to a local variable
+
+foo :: fn() -> local User {
+    ...
+}
+foo_const :: fn() -> local const User {
+    ...
+}
+foo_const2 :: const fn() -> local User {
+    ...
+}
+
+# local in a definition is a promise that this field does not leave the scope
+# local in a return type is the requirement that the receiver scope
+# does not pass it to another function
+
+baz :: fn(const User){..}
+
+bar :: fn() {
+    local user := foo()
+    user.name = "John"
+    user.age = 20
+    baz(user) # okay since it is const
+
+    local user :: foo_const()
+    user.name = "John" # error
+    baz(user) # error
+
+    myUContainer := List(User)[]
+
+    myUContainer.push(user) # error, since it is local
+
+    local myUContainer2 := List(User)[]
+
+    myUContainer2.push(user) # okay, since it is local
+    # which means you cannot set myUContainer2 to a field
+    # which is not local
+    # and you cannot pass it to a function that is not local
+    # and cou cannot return it
+
+}
+

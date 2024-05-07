@@ -12,7 +12,7 @@ include_once __DIR__ . "/parse_expression.php";
  */
 function parse_call_argument_list(array $tokens, int &$index): CallArgumentListNode {
 
-  $ast_expression_node = new CallArgumentListNode(type: AstNodeType::CALL_ARGUMENT_LIST, tokens: [], children: [
+  $ast_expression_node = new CallArgumentListNode(tokens: [], children: [
   ]);
 
   $first_token = $tokens[$index];
@@ -36,24 +36,24 @@ function parse_call_argument_list(array $tokens, int &$index): CallArgumentListN
       }
 
       $next_token_is_close = $tokens[$index]->type == TokenType::CLOSE_PAREN;
-      #echo $next_token_is_close->type->name;
-      #echo $next_token_is_close->value;
+
       if($index+1 >= count($tokens)) {
         $next_next_token_is_close = false;
       }else {
         $next_next_token_is_close = $tokens[$index + 1]->type == TokenType::CLOSE_PAREN;
       }
-      #echo $next_next_token_is_close->type->name;
-      #echo $next_next_token_is_close->value;
-      #echo "\n";
 
       if ($next_token_is_close || $next_next_token_is_close) {
 
         if ($next_next_token_is_close) {
-          if ($tokens[$index]->type !== TokenType::COMMA) {
-            throw new SyntaxError("Expected trailing comma or noting, got: $tokens[$index]");
+
+          # only if we have a trailing comma
+          # remove the last element -> the trailing comma
+          if ($tokens[$index]->type === TokenType::COMMA) {
+            #throw new SyntaxError("Expected trailing comma or noting, got: $tokens[$index]");
+            $index++; // we jump over the trailing comma
           }
-          $index++; // we jump over the trailing comma
+
         }
         $index++; // we jump over the closing parenthesis
         break; // end of argument list
