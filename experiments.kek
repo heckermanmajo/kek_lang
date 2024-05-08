@@ -1,0 +1,98 @@
+    struct :: A {
+        a: Int
+        b: Float
+        c: String
+    }
+
+
+    # c struct
+    struct :: A {
+        a: Int
+        b: Float
+        c: String
+    }
+
+    struct :: B {
+        a: A # this is a block of memory with the size of A
+        b: *A # simple ref to A
+        b: ?*A # "nullable" ref to A -> really an option
+        c: !*A # this is a ref that is owned by the struct
+        # so if the struct gets freed the ref gets freed
+    }
+
+    OnTheStack :: A(1, 2.0, "hello")
+    OnTheHeap :: *A(1, 2.0, "hello")
+    # the scope in which sth is passed in is the owner
+    # you can pass an const once around
+
+
+    # local returns
+    # you can set a return type to local
+    # which means, that only the direct caller scope can edit
+    # the return value
+    # and can only pass const version to other functions
+    # if you say "local const", it cannot even edit it
+    # AND cannot pass it into other functions
+    # a receiving function can only set this to a local variable
+
+    foo :: fn() -> local User {
+        ...
+    }
+    foo_const :: fn() -> local const User {
+        ...
+    }
+    foo_const2 :: const fn() -> local User {
+        ...
+    }
+
+    # local in a definition is a promise that this field does not leave the scope
+    # local in a return type is the requirement that the receiver scope
+    # does not pass it to another function
+
+    baz :: fn(const User){..}
+
+    bar :: fn() {
+        local user := foo()
+        user.name = "John"
+        user.age = 20
+        baz(user) # okay since it is const
+
+        local user :: foo_const()
+        user.name = "John" # error
+        baz(user) # error
+
+        myUContainer := List(User)[]
+
+        myUContainer.push(user) # error, since it is local
+
+        local myUContainer2 := List(User)[]
+
+        myUContainer2.push(user) # okay, since it is local
+        # which means you cannot set myUContainer2 to a field
+        # which is not local
+        # and you cannot pass it to a function that is not local
+        # and cou cannot return it
+
+        # you need to discard return values ...
+        _ = foo()
+
+    }
+
+
+
+    # create a list type -> template
+    # just generates a list of type of code
+    # list and map is built in
+    # basically type generators
+    # we can have the basic types as templates
+    # the type is generated at compile time
+    # and get the name
+    # TemplateContainer
+    List(User)
+    Map(String,User)
+    #MemoryArena(User,InitSize)
+    Union(User,Error)
+    # will be called
+    Option(User)
+    TreeNode(Node)
+    Queue(Message)

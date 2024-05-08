@@ -124,6 +124,31 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
       $ast_expression_node = new ExpressionTermNode(tokens: [], children: []);
 
       if ($tokens[$index]->type === TokenType::IDENTIFIER) {
+
+        # check if the identifier is a type, parse the type
+        $identifier_is_type = ctype_upper($tokens[$index]->value[0]);
+        if($identifier_is_type){
+
+          $type_expression = parse_type_expression($tokens, $index);
+
+          $next_token = $tokens[$index];
+
+          # construction literal -> type-expression (call-argument-list)
+          if ($next_token->type === TokenType::OPEN_PAREN) {
+            $node = new ConstructionLiteralNode(tokens: [], children: [$type_expression]);
+            $node->children[] = parse_call_argument_list($tokens, $index);
+            $expression_node = new ExpressionNode(tokens: [], children: [$node]);
+            $unsorted_terms[] = $expression_node;
+            return;
+          }
+
+          $ast_expression_node->children[] = $type_expression;
+          $unsorted_terms[] = $ast_expression_node;
+
+          return;
+
+        }
+
         # if the token after the identifier is an open parenthesis,
         # then this is a function call
         if (count($tokens) > $index + 1
@@ -155,6 +180,8 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
       $unsorted_terms[] = $ast_expression_node;
     })($tokens, $index);
+
+    # todo: handle expression block
 
     # now we parse an expression
     #$node = parse_expression_term($tokens, $index);

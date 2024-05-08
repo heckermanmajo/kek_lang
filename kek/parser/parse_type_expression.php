@@ -92,10 +92,6 @@ function parse_type_identifier_list(array &$tokens, int &$index): AstNode {
       break; // end of argument list
     }
 
-    if ($tokens[$index]->type !== TokenType::COMMA) {
-      throw new SyntaxError("Expected comma or closing PARANTHESIS for type argument list, got: $tokens[$index]");
-    }
-    $index++; // consume the comma
   }
 
   return $ast_node;

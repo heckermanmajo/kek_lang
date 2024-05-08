@@ -28,8 +28,6 @@ function parse_call_argument_list(array $tokens, int &$index): CallArgumentListN
   if (!$is_close_parenthesis) {
 
     while (true) {
-      $node = parse_expression_term($tokens, $index);
-      $ast_expression_node->children[] = $node;
 
       if ($index >= count($tokens)) {
         throw new SyntaxError("Expected closing parenthesis for functioncall argument list, got EOF");
@@ -37,36 +35,39 @@ function parse_call_argument_list(array $tokens, int &$index): CallArgumentListN
 
       $next_token_is_close = $tokens[$index]->type == TokenType::CLOSE_PAREN;
 
-      if($index+1 >= count($tokens)) {
-        $next_next_token_is_close = false;
-      }else {
-        $next_next_token_is_close = $tokens[$index + 1]->type == TokenType::CLOSE_PAREN;
-      }
+      if ($next_token_is_close ) {
 
-      if ($next_token_is_close || $next_next_token_is_close) {
-
-        if ($next_next_token_is_close) {
-
-          # only if we have a trailing comma
-          # remove the last element -> the trailing comma
-          if ($tokens[$index]->type === TokenType::COMMA) {
-            #throw new SyntaxError("Expected trailing comma or noting, got: $tokens[$index]");
-            $index++; // we jump over the trailing comma
-          }
-
-        }
         $index++; // we jump over the closing parenthesis
         break; // end of argument list
 
-      }else{
-
-        if ($tokens[$index]->type !== TokenType::COMMA) {
-          throw new SyntaxError("Expected comma or closing parenthesis for functioncall argument list, got: $tokens[$index]");
-        }
-        $index++; // we jump over the comma
       }
 
-    }
+      # can be a.b.e  = "kek" if this is a map, f.e.
+      $expression = parse_expression_term($tokens, $index);
+      $token = $tokens[$index];
+      if ($token->type == TokenType::EQUALS){
+          # we have a named parameter
+          # now we parse an assignment
+          $index++; # jump over the equals sign
+          $expression_term_2 = parse_expression_term($tokens, $index);
+          $assignment_node = new AssignmentNode(
+            tokens: [$next_token],
+            children: [
+              $expression,
+              $expression_term_2
+            ]
+          );
+          $ast_expression_node->children[] = $assignment_node;
+          continue; # the while loop, next list element ...
+
+      }
+
+      $ast_expression_node->children[] = $expression;
+
+
+    } # end while
+
+
 
   }
   else {

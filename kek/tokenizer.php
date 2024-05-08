@@ -12,11 +12,11 @@ function analyze_non_sign_word(string $word, int $line, int $column): Token {
     return new Token(TokenType::BOOL_LITERAL, $word, $line, $column);
   }
 
-  if(is_keyword($word, true)){
+  if (is_keyword($word, true)) {
     return new Token(TokenType::KEYWORD, $word, $line, $column);
   }
 
-  if(is_keyword($word, false)){
+  if (is_keyword($word, false)) {
     return new Token(TokenType::TYPE_KEYWORD, $word, $line, $column);
   }
 
@@ -281,12 +281,13 @@ function tokenize(string $code, bool $verbose = false): array {
   }
 
   $ret = [];
-  foreach($tokens as $token){
-    if($token->type === TokenType::COMMENT
+  foreach ($tokens as $token) {
+    if ($token->type === TokenType::COMMENT
       || $token->type === TokenType::MULTILINE_COMMENT
       || $token->type === TokenType::NEW_LINE
       || $token->type === TokenType::WHITE_SPACE
-      || $token->type === TokenType::TAB){
+      || $token->type === TokenType::TAB
+      || $token->type === TokenType::COMMA) {
       continue;
     }
     $ret[] = $token;
@@ -295,7 +296,7 @@ function tokenize(string $code, bool $verbose = false): array {
   return $ret;
 }
 
-if (count(debug_backtrace()) == 0){
+if (count(debug_backtrace()) == 0) {
   foreach ($tokens as $token) {
     echo $token . "\n";
   }

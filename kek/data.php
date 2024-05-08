@@ -70,6 +70,10 @@ enum TokenType: string {
   case BINARY_OPERATOR = 'BINARY_OPERATOR';
   case UNARY_BINARY_OPERATOR = 'UNARY_BINARY_OPERATOR';
 
+  case VAR_ASSIGNMENT = 'VAR_ASSIGNMENT';
+
+  case DOUBLE_DOT = 'DOUBLE_DOT';
+
 }
 
 function get_signs() : array {
@@ -94,6 +98,8 @@ function get_signs() : array {
     "]" => TokenType::CLOSE_BRACKET,
     "->" => TokenType::ARROW,
     "::" => TokenType::DOUBLE_COLON,
+    ".." => TokenType::DOUBLE_DOT,
+    ":=" => TokenType::VAR_ASSIGNMENT,
     "." => TokenType::BINARY_OPERATOR,
     ";" => TokenType::SEMICOLON,
     "$" => TokenType::DOLLAR,
@@ -123,7 +129,6 @@ enum Keywords: string {
   case _PUB = 'pub';
   case _CONST = 'const';
   case _FN = 'fn';
-  case _INTERFACE = 'interface';
   case _STRUCT = 'struct';
   case _TRAIT = 'trait';
   case _USE = 'use';
@@ -135,7 +140,6 @@ enum Keywords: string {
   case _ELSE = 'else';
   case _FOR = 'for';
   case _ENUM = 'enum';
-  case _IMPLEMENTS = 'implements';
   case _SELF = 'self';
   case _MODULE = 'module';
   case _RULESET = 'ruleset';
@@ -290,13 +294,20 @@ class TypeArgumentListNode extends AstNode {}
 
 class ReturnTypeNode extends AstNode {}
 
-class ConstDefinitionNode extends AstNode {}
+class ConstDefinitionNode extends AstNode {#
+
+  public bool $extern;
+  public bool $pub;
+
+}
 
 class IfNode extends AstNode {}
 
 class ExpressionTermNode extends AstNode {}
 
-class ScopeBlockNode extends AstNode {}
+class ScopeNode extends AstNode {}
+
+class BlockNode extends AstNode {}
 
 class FunctionNode extends AstNode {}
 
@@ -305,3 +316,22 @@ class ForNode extends AstNode {}
 class ConstructionLiteralNode extends AstNode {}
 
 class TypeConstructionNode extends AstNode {}
+
+class AssignmentNode extends AstNode {}
+
+class VariableDefinitionNode extends AstNode {}
+
+class ElifNode extends AstNode {}
+
+class ElseNode extends AstNode {}
+
+class ReturnNode extends AstNode {}
+class ConditionNode extends AstNode {}
+
+class NameListNode extends AstNode {}
+
+class FieldDefinitionNode extends AstNode {}
+
+class TypeDefinitionNode extends AstNode {
+  public string $type;
+}

@@ -1,383 +1,241 @@
-# one folder is one module
-# we can have one build module
-# once we have build the compiler itself in kek
- # or module test:c or module test:php
-module("test", "js"){
+# single line comment
+##
+Multi line comment
 
-    ruleset("max_for_loop_iterations", 100 )
-    ruleset("rulename", "some const expression")
-    ruleset("rulename", "some const expression")
-    ruleset("hide_namespace")
-    my_fuction :: fn(){
-        ruleset :: only_const
+-> Commas are optional
 
+Each code needs to be wrapped in a module
+The module has a name and the defines the backend
+languge.
 
-        print("Hello World")
-    }
-    ruleset("reverse_hide_namespace")
+##
+module("main" "php"){
 
-    # you copy in libs as single modules
-    # you can use the compiler to pack a module into one file
-    # with all the dependency-modules
+    ##
+        You can set rules for all scopes
+        Scopes inherit the rules from the parent scope
+    ##
+    use RuleSet(
+        no_fuck_around = true
+    )
 
-    # we can use const stuff from another module
-    open("./path/to_module_folder"){
-        use module_name.const_value
-        use module_name.const_value2
-    }
-
-    # we can get stuff from the std lib
-    open("std"){
-        use module_name.const_value
+    ##
+        Open a other module
+        -> visible only for the scope the
+        "open" is in, as well as all child scopes
+    ##
+    open(STD){
+        use fmt.out
     }
 
-    open("std"){
-        use module_name.const_value
-        use module_name.const_value2
-    }
+    my_const :: 1
 
-    # we can get stuff that is defined by the compiler implementation
-    # for later a "import all statement"
-    open("dimantic"){
-        use frontend.*
-    }
-
-    # or like tha
-
-    ruleset :: disable_use
-    # after this we cannot import anything
-    ruleset("freeze_ruleset")
-    # after this we cannot change rules anything
-
-    # this is a function that is defined in the compiler code
-    # -> f.e. in the php, js or c code.
-    extern pub getDomNode :: Fn(String)->DomNode
-
-    # define a const
-    # CONST-EXPRESSION -> all that cannot be on the left side of an assignment
-    my_const :: 800
-
-    # pub allows for export outside of the module
-    pub exported_const :: 800
-
-    # define a variable
-    my_var := 100
-
-    # define a function
-    myFunc :: fn(a: Int, b: Int) -> Int {
+    my_fn:: fn(a:Int b:Int) -> Int {
         return a + b
     }
 
-    # only types are allowed to start with a capital letter
+    MyEnum :: enum{ KEK :: 1 LOL :: 2 ROFL :: 3 }
 
-    # trait allows to share functionality
-    #  but also to act like an interface
-    DataObject :: trait {
-
-        table_name :: String
-        db_connection :: DataBaseObject
-        id: Int
-
-        save_me :: Fn(Self)
-
-        save :: fn(self) {
-           # more logic ...
-           self.db_connection.save(self)
-        }
-
-    }
-
-    # define a struct
     ##
-        This is a doc comment.
+    A trait is basically a interface, as well as a code reuse
+    vehicle for object composition.
+    This depends on the use.
     ##
-    User :: struct {
+    MyTrait :: trait{
 
-        use DataObject
+       field: Int
 
-        table_name :: String = "Users"
-        db_connection :: DataBaseObject = DataBaseObject()
+       static_field :: 123
 
-        id: Int = -1
-        name: String
-        age: Int
+       abstract_method : Fn(Self)->String
 
-        create_user_fn1 :: fn(name: const String, age: const Int) -> local User {
-            return User(
-               id: 1,
-               name: name,
-               age: age
-            )
+       abstract_static_method :: Fn()->String
+
+       method_to_share : fn(self){
+          out( self.field )
+       }
+
+    }
+
+    # structs and traits NEED TO BE UpperCase
+
+
+    ##
+        Structs allow to structure data.
+
+        You can use traits to compose structs or to
+        ensure functionality on structs.
+
+        Structs can have methods and static methods, so
+        a struct can also act as a name-space.
+    ##
+    MyStruct :: struct{
+
+        use MyTrait
+
+        some_other_field: Int
+
+        abstract_method : fn(self) -> String {
+          return "implemented" & self.field
         }
 
-         create_user_fn1 :: const fn(name: String, age: Int) -> User {
-             return User(
-                id: 1,
-                   name: name,
-                   age: age
-                )
-         }
-
-        method1 :: fn(const self){
-            print("Hello, ", self.name)
-        }
-
-        method1 :: fn(self){
-            self.age = self.age + 1
-            print("Hello, ", self.name)
-        }
-
-        loop_over_users :: fn(users: List(User)){
-
-           for (i := 0 .. users.len; 1) {
-              user := users[i]
-              print(user)
-           }
-
+        abstract_static_method :: fn(scope)->String {
+            return "implemented"+ scope.static_field
         }
 
     }
 
 
-    # create a list type -> template
-    # just generates a list of type of code
-    # list and map is built in
-    # basically type generators
-    # we can have the basic types as templates
-    # the type is generated at compile time
-    # and get the name
-    # TemplateContainer
-    List(User)
-    Map(String,User)
-    #MemoryArena(User,InitSize)
-    Union(User,Error)
-    # will be called
-    Option(User)
-    TreeNode(Node)
-    Queue(Message)
-
-    NodeType :: enum{
-        intNode :: 0
-        floatNode :: 1
-        stringNode :: 2
+    Utils :: struct{
+        use RuleSet(namespace = true) #  this struct can only contain static methods and other static field values
+        add :: fn(a:Int b:Int) -> Int {
+            return a + b
+        }
     }
 
+    # we can use ruleset to disable the creation of an struct via literal
+    # or even make fields private
+    ILoveOOP :: struct{
+
+       use RuleSet(
+         outside_literal_creation = false
+         private_fields = true
+       )
+
+       a: Bool
+       b: MyStruct
+
+       new :: fn() -> self {
+          return self(
+             a = false,
+             b = MyStruct()
+          )
+       }
+
+    }
+
+    # we can put together rulesets
+    # the ruleset itself has the const-values only rule
+    # so you cannot put in expressions, only literals
+    strict_function_rules :: RuleSet(
+        allow_variables = false
+    )
+
+    # functions can only see const values from the top level scope
     foo :: fn(){
-    myLocal2 :: 13
+       # nice we can set the rules for our function
+       use strict_function
+    }
+    other_foo :: fn(){
+       # nice we can set the rules for our function
+       use strict_function
+    }
+
+    number_guess :: fn(number: Int ) -> Union(Bool, Error, String){
+       if number < 0 {
+          return ->(bool = false) #-> shorthand for return type construction literal Union(Bool, Error, String)
+          # return Union(Bool, Error, String)(bool = false)
+       }elif number > 100 {
+          return ->(error = Error("You suck"))
+       }else{
+          return ->(string = "Eat Ass!")
+       }
+    }
+
+    get_option :: fn() -> Option(MyStruct) {
+      return ->(some = false)
+    }
+
+    main :: fn(){
+
+        local_const :: MyStruct(
+           field = 124
+           some_other_field = 124
+        )
+
+        variable := MyStruct(
+           field = 124
+           some_other_field = 124
+        )
+
+        variable.field = 99999
+
+        if my_struct := get_option?value {
+            out("nice we got a value")
+        }else{
+            out("bad...")
+        }
+
+        myList := List(MyStruct)()
+
+        myMap := Map(String, MyStruct)(
+           "Kacke" = MyStruct(
+              field = 124
+              some_other_field = 124
+           )
+        )
+
+        myList2 := List(Int)(1 2 3 4 5 6 7 8 9)
+        # the -> before a ( means assume the type of the construction literal from the left hand side
+
+        localf :: fn(a: List(Int)){}
+        localf(->(1 2 3 4 5 6 7))
+
+        for i := 0 .. myList2.len {
+            out(i)
+        }
+
+        for i := 0 .. myList2.len; 2{
+            out(i)
+        }
+
+        if(b := number_guess()?bool){
+            out("we got " + b)
+        }elif(s := _?string){
+            out(s)
+        }elif(err:= _?error){
+            out(err.message)
+            out(err.traceback)
+        }
+
+
+        b := 14
 
         {
-            myLocal :: 13
+          a := 124 + b
         }
 
-        (myLocal2){
+        # a is not defined here
 
+        (){
+          a := 124 # b isnot defined here
+          # since the () makes this a capture block
         }
 
-        lol := () -> Int {
 
-
-            return 12
+        (b){
+          a := 124 + b
         }
 
-        my_local_fn :: fn(i: List(Int)) -> Int {
+        {
+
+
+         a := (b) -> { # this is a return block
+            return 124 + b
+         }
+
+         {
+             a := -> {  # this is a return block
+                return 124 + b
+             }
+         }
 
         }
 
     }
 
 
-    # list expression -> need to match the type
-    myList := List(User)[]
-    # map expression -> need to match the type
-    myMap := Map(String,User){}
-    # this creates a struct
-    myObject := User()
 
 
-
-    Union(User,ListOfUser,Error,nil) # short hand for
-    :: struct {
-        User: User = ---
-        ListOfUser: ListOfUser = ---
-        Error: Error = ---
-        is_nil: bool = ---
-    }
-
-    main::fn(){
-
-        # int list provided
-        my_list := List(Int)[1,2,3,4,5,6,7]
-
-        my_list = List(Int)[1]
-
-        my_f_list := List(Float)[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
-
-        my_users_list := List(User)[
-            User.create_user_fn1("John", 20),
-            User.create_user_fn1("Jane", 30)
-        ]
-
-        my_map := Map(Int,Int){
-            1 = 2,
-            3 = 4,
-            5 = 6
-        }
-
-        some_input := "some_input"
-
-        my_file := (some_input) -> File {
-            file_exists := File.exists(some_input)
-            if (file_exists){
-                file := File.open(some_input)
-                return file
-            }
-            else {
-                return File.create(some_input)
-            }
-        }
-
-        my_user := User(
-            id = 1,
-            name = "John",
-            age = 20
-        );
-
-        bad_function :: fn()-> Option(Error){
-            return error("Something went wrong")
-        }
-
-        if err:Error = bad_function() ? Error { # a ref that is not nil
-           print(
-               err.line
-               err.file(1 2 34 5 56)
-               err.function
-               err.function_state
-               err.trace
-           )
-        }
-
-        if 12 == lol(foo()) {
-            print("Hello")
-        }
-
-        # expression  lol(), 1 ""
-        # expression-term
-
-        name :: ( - 1 + 2) * lol() - 123
-
-
-        if(u?Error){ # a ref that is not nil
-        }
-
-        if(err := u?Error){ # a ref that is not nil
-        }
-
-        u: Union(User,List(User),Error) = user_factory("lol", 1)
-        if(err := u?Error){ # same as if(u.Error == nil){err:= u.Error}
-            print("Error: ", err)
-        }
-        elif(user := u?User){
-            user.print_name()
-        }
-        elif(arr := u?ListOfUser){
-            for user in arr {
-                user.print_name()
-            }
-        }
-
-        user := () -> User {
-            u :: user_factory("lol", 1)
-            if(user := u?User){
-                return user
-            }
-            else {
-                return User.create_user_fn1("John", 20)
-            }
-        }
-
-
-    }
-
-
-    struct :: A {
-        a: Int
-        b: Float
-        c: String
-    }
-
-
-    # c struct
-    struct :: A {
-        a: Int
-        b: Float
-        c: String
-    }
-
-    struct :: B {
-        a: A # this is a block of memory with the size of A
-        b: *A # simple ref to A
-        b: ?*A # "nullable" ref to A -> really an option
-        c: !*A # this is a ref that is owned by the struct
-        # so if the struct gets freed the ref gets freed
-    }
-
-    OnTheStack :: A(1, 2.0, "hello")
-    OnTheHeap :: *A(1, 2.0, "hello")
-    # the scope in which sth is passed in is the owner
-    # you can pass an const once around
-
-
-    # local returns
-    # you can set a return type to local
-    # which means, that only the direct caller scope can edit
-    # the return value
-    # and can only pass const version to other functions
-    # if you say "local const", it cannot even edit it
-    # AND cannot pass it into other functions
-    # a receiving function can only set this to a local variable
-
-    foo :: fn() -> local User {
-        ...
-    }
-    foo_const :: fn() -> local const User {
-        ...
-    }
-    foo_const2 :: const fn() -> local User {
-        ...
-    }
-
-    # local in a definition is a promise that this field does not leave the scope
-    # local in a return type is the requirement that the receiver scope
-    # does not pass it to another function
-
-    baz :: fn(const User){..}
-
-    bar :: fn() {
-        local user := foo()
-        user.name = "John"
-        user.age = 20
-        baz(user) # okay since it is const
-
-        local user :: foo_const()
-        user.name = "John" # error
-        baz(user) # error
-
-        myUContainer := List(User)[]
-
-        myUContainer.push(user) # error, since it is local
-
-        local myUContainer2 := List(User)[]
-
-        myUContainer2.push(user) # okay, since it is local
-        # which means you cannot set myUContainer2 to a field
-        # which is not local
-        # and you cannot pass it to a function that is not local
-        # and cou cannot return it
-
-        # you need to discard return values ...
-        _ = foo()
-
-    }
 
 }
-
