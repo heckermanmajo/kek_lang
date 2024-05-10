@@ -9,7 +9,11 @@ The module has a name and the defines the backend
 languge.
 
 ##
-module("main" "php"){
+
+# bytecode for embedding into c code like lua
+# and then we can compile it into bytecode
+# and have c-interop
+module("main" "php"){ # "js", "php", "c", "bytecode"
 
     ##
         You can set rules for all scopes
@@ -72,6 +76,9 @@ module("main" "php"){
     MyStruct :: struct{
 
         use MyTrait
+        # this adds all the runtime type info
+        # methods and data to this struct.
+        use RuntimeTypeInformation
 
         some_other_field: Int
 
@@ -79,6 +86,7 @@ module("main" "php"){
           return "implemented" & self.field
         }
 
+        # scope is the static scope of the struct definition
         abstract_static_method :: fn(scope)->String {
             return "implemented"+ scope.static_field
         }
@@ -99,7 +107,6 @@ module("main" "php"){
 
        use RuleSet(
          outside_literal_creation = false
-         private_fields = true
        )
 
        a: Bool
@@ -139,6 +146,7 @@ module("main" "php"){
           return ->(error = Error("You suck"))
        }else{
           return ->(string = "Eat Ass!")
+          # return -> induces the return type
        }
     }
 
@@ -168,7 +176,7 @@ module("main" "php"){
 
         myList := List(MyStruct)()
 
-        myMap := Map(String, MyStruct)(
+        myMap := Map(String MyStruct)(
            "Kacke" = MyStruct(
               field = 124
               some_other_field = 124
@@ -193,7 +201,7 @@ module("main" "php"){
             out("we got " + b)
         }elif(s := _?string){
             out(s)
-        }elif(err:= _?error){
+        }elif(err := _?error){
             out(err.message)
             out(err.traceback)
         }
@@ -212,6 +220,16 @@ module("main" "php"){
           # since the () makes this a capture block
         }
 
+
+        a := ->( 1 2 4 5 6 ) #  type induced
+
+        tuple := ->(1 true "kek" 1.2) # type == Tuple(Int, Bool, String, Float)
+
+        b :: ->(
+            "KEK" = "LOL"
+        )
+
+        needs_vector(->(x=2 y=3 z=4))
 
         (b){
           a := 124 + b
@@ -234,8 +252,86 @@ module("main" "php"){
 
     }
 
+    ##
+        Local keyword
+        -> before a field means
+        that this field can not leave the scope
+
+        -> local in a function means that the variable
+        can not be set to any value from outside the
+        using scope.
+        -> this means, that if we share a reference we know
+        that it will not appear in another portion of persistent
+        state.
+
+    ##
+    local_struct :: struct{
+        local a: Int
+        local b: Int
+        local my: MyStruct
+
+        ##
+            My striuct can be read but not set to outside the scope
+        ##
+        getmy_as_local:: fn() -> local MyStruct {
+            return my
+        }
+
+    }
+
+    instances :: List(MyStruct)
+
+    {
+
+        instances.append(MyStruct(
+            field = 124
+            some_other_field = 124
+        ))
+
+        local my_struct := MyStruct(
+            field = 124
+            some_other_field = 124
+        )
+
+        instances.append(my_struct) # this is not allowed
+
+        local mys2 = my_struct.getmy_as_local() # this is allowed
+
+        instances.append(my_struct) # this is not allowed
+        # error would be: Type-Error local value my_struct is not allowed to leave the scope
+        # append would need to consume a local value
+        # but this is not the case with append, since
+        # append would assign the value to the inner state
+
+        # local in the variable list is the promise that the variable
+        # will not be set to from outside the scope
+        # so if the function has concluded
+        # no references to the passed in variable will exist
+        mf :: fn(m: local MyStruct) {
+            out(m.field)
+        }
+
+        # const means value cannot be changed
+        # but could "leave the scope"
+
+
+        # maybe we can create "managed" values?
+        # which are refernce counted??
+
+    }
+
+    # offer full c interop by offering pointers and structs
+    # pointer are disabled in modules by default but can be
+    # enabled.
+    # so we can write code that calls s code directly in kek
+
+    # do we need a cfn keyword to define the c functions
+    cfn
+
 
 
 
 
 }
+
+
