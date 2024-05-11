@@ -1,0 +1,166 @@
+{
+
+    FunctionRules :: RuleSet(
+        max_arguments = 3
+    )
+
+    DummyRules :: RuleSet(
+        only_local = true
+    )
+
+
+    #use RuleSet()(
+    #    no_fuck_around = true
+   # )
+
+    my_const_string :: "lol"
+
+    my_var := 124
+
+    my_var2 := 1 + 2 * 3 / 5 + 12 - 123 ** 1234
+
+    minus_one := -1
+
+    MyEnum :: enum{
+        A :: 1
+        B :: 2
+    }
+
+    myF :: fn(){}
+
+    myF1 :: fn(a:Int b:Int c:Int){
+       a := a + b + c
+    }
+
+    myF1 :: fn(a:Int b:Int c:Int) -> Int {
+       a := a + b + c
+       return a
+    }
+
+
+    my_function_call := myF1(1 2 3)
+    my_function_call := myF1(a = 1 b =2 c=3)
+    # todo: this problem sucks ...
+    my_function_call := Vector()(a = 1 b =2 c=3)
+
+    MyStruct :: struct{
+        a: Int
+        expected_function: Fn()->Int
+    }
+
+    mys := MyStruct()(a=1234)
+
+    b := number_guess() ? error
+
+    if b := number_guess() ? bool {
+        out("we got " + b)
+    }elif s := _?string {
+        out(s)
+    }elif err := _?error {
+        out(err.message)
+        out(err.traceback)
+    }else {}
+
+
+    {
+       a := 124 + b
+    }
+
+    (){
+       a := 124 + b
+    }
+
+    a := () -> Int{
+        return 13
+    }
+
+    for i:=0..12;1 {
+
+    }
+
+    for i:=0..12 {
+
+    }
+
+
+    Player :: struct{
+
+        # he does not get use position
+        #use Position
+
+    }
+
+    #import "std" print;pprint
+
+    #print :: import("./path/to/file/with/MyClass" print pprint)
+    # this allows to only import very specific name spaces
+    # no assignment will place the imported namespace into the global scope
+
+    @no_global_import_of_std_lib :: true
+
+    import("./path/to/file/with/MyClass" print pprint)
+    Std :: import("std" print)  # load the whole std module into this const
+    print :: Std.print
+    pprint :: Std.pprint # error
+
+    out :: import("std.fmt").out
+    MyClass :: import("./path/to/file/with/MyClass").MyClass
+
+    MyTrait :: trait{
+
+       field: Int
+
+       static_field :: 123
+
+       abstract_method :: Fn(Self)->String
+
+       abstract_static_method :: Fn()->String
+
+       method_to_share :: fn(self: MyTrait){
+          out( self.field )
+       }
+
+    }
+
+    MyStruct :: struct(
+        MyTrait
+        # this adds all the runtime type info
+        # methods and data to this struct.
+        RuntimeTypeInformation
+    ){
+
+        some_other_field: Int
+
+        abstract_method :: fn(self: MyStruct) -> String {
+          return "implemented" + self.field
+        }
+
+        # scope is the static scope of the struct definition
+        abstract_static_method :: fn()->String {
+            return "implemented" + MyStruct.static_field
+        }
+
+    }
+
+    lol:: lolplpl
+
+    GenericTrait :: trait(T){
+        field: T
+        method :: fn(self:T) -> T {}
+    }
+
+    @no_global_import_of_std_lib :: true
+
+    # todo: we cannot parse the type inference operator arrow
+    number_guess :: fn(number: Int) -> Union(Bool, Error, String){
+       if number < 0 {
+          #return ->(bool = false) #-> shorthand for return type construction literal Union(Bool, Error, String)
+          # return Union(Bool, Error, String)(bool = false)
+       }elif number > 100 {
+          #return ->(error = Error("You suck"))
+       }else{
+          #return ->(string = "Eat Ass!")
+          # return -> induces the return type
+       }
+    }
+}

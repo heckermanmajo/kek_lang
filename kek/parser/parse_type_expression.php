@@ -1,9 +1,5 @@
 <?php
 
-include_once "data.php";
-include_once "tokenizer.php";
-include_once "parser_helper.php";
-
 # "special type identifiers": self, fn
 # rest is type_identifier
 #type_expression_argument_list = ("," type_expression)
@@ -18,11 +14,22 @@ include_once "parser_helper.php";
  */
 function parse_type_expression(array &$tokens, int &$index): TypeExpressionNode {
 
-  # expect identifier or self or fn
-
   $ast_node = new TypeExpressionNode(tokens: [], children: []);
 
+  # consume local and const
+  # can be directly set on the type expression node
+
   $token = $tokens[$index];
+
+  if($token->type === TokenType::KEYWORD && $token->value === "local"){
+    $ast_node->is_local = true;
+    $index++;
+  }
+  if ($token->type === TokenType::KEYWORD && $token->value === "const") {
+    $ast_node->is_const = true;
+    $index++;
+  }
+
   $is_identifier = $token->type === TokenType::IDENTIFIER;
   $is_self = $token->value === "Self" && $token->type === TokenType::IDENTIFIER;
   $is_fn = $token->value === "Fn" && $token->type === TokenType::IDENTIFIER;

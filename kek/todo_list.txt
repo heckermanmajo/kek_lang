@@ -1,2 +1,0 @@
--  named parameter lists -> needed for maps and
-also struct creation literal

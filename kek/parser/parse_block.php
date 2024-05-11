@@ -1,9 +1,5 @@
 <?php
 
-include_once __DIR__ . "/../data.php";
-include_once __DIR__ . "/../tokenizer.php";
-include_once __DIR__ . "/../parser_helper.php";
-
 /*
 
  We expect:
@@ -42,7 +38,7 @@ function parse_block(array $tokens, int &$index):BlockNode {
 
   $token = $tokens[$index];
 
-  if ($token->type === TokenType::OPEN_BRACE) {
+  if ($token->type === TokenType::OPEN_PAREN) {
     $name_list = parse_name_list($tokens, $index);
     $ast_node->children[] = $name_list;
   }
@@ -88,6 +84,8 @@ function parse_name_list(array $tokens, int &$index): NameListNode {
   if ($token->type !== TokenType::CLOSE_PAREN) {
     throw new SyntaxError("Expected ), got: $token");
   }
+
+  $index++; // jump over ")"
 
   return $name_list_node;
 

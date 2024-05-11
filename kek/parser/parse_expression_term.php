@@ -1,10 +1,4 @@
 <?php
-include_once __DIR__ . "/../data.php";
-include_once __DIR__ . "/../tokenizer.php";
-include_once __DIR__ . "/../parser_helper.php";
-include_once __DIR__ . "/parse_identifier.php";
-include_once __DIR__ . "/parse_call_argument_list.php";
-include_once __DIR__ . "/parse_value_literal.php";
 
 function get_precedence_level(Token $t): int {
   return match ($t->value) {
@@ -25,6 +19,7 @@ function get_precedence_level(Token $t): int {
     " or " => 5,
     " not " => 6,
     "." => 7,
+    "?" => 7,
     default => throw new SyntaxError("Unknown operator: $t")
   };
 }
@@ -67,30 +62,13 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
     $token = $tokens[$index];
 
-    # this handles minus as a prefix operator
-    $token_is_unary_OR_binary_operator = $token->type === TokenType::UNARY_BINARY_OPERATOR;
-    if ($token_is_unary_OR_binary_operator) {
-      $last_term = $unsorted_terms[count($unsorted_terms) - 1];
-      if ($last_term instanceof Token || count($unsorted_terms) === 0) {
-        $token->type = TokenType::UNARY_OPERATOR;
-        $unsorted_terms[] = parse_unary_term($tokens, $index);
-      } else {
-        # just add - as a normal binary operator
-        $token->type = TokenType::BINARY_OPERATOR;
-        $unsorted_terms[] = $token;
-        $index++;
-      }
-      continue;
-    }
 
-    # unary operators
-    if ($token->type === TokenType::UNARY_OPERATOR) {
-      $unsorted_terms[] = parse_unary_term($tokens, $index);
-      continue;
-    }
-
-    # binary operators
-    if ($token->type === TokenType::BINARY_OPERATOR) {
+    # operators
+    if (
+      $token->type === TokenType::UNARY_OPERATOR
+      || $token->type === TokenType::BINARY_OPERATOR
+      || $token->type === TokenType::UNARY_BINARY_OPERATOR
+    ) {
       $unsorted_terms[] = $token;
       $index++;
       continue;
@@ -116,6 +94,15 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
     $token_is_close_paren = $token->type === TokenType::CLOSE_PAREN;
     if ($token_is_close_paren) {
       break;
+    }
+
+    if($token->type == TokenType::KEYWORD && $token->value == "use"){
+      $node = new UseNode(tokens: [$token], children: []);
+      $index++;
+      $expression = parse_expression_term($tokens, $index);
+      $node->children[] = $expression;
+      $unsorted_terms[] = $node;
+      continue;
     }
 
 
@@ -203,6 +190,42 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
   }
 
+  # Before we sort the unsorted terms we need to apply the unary operators
+  # to the term that follows
+
+  $unsorted_terms_with_applied_unary_operators = [];
+  for ($i = 0; $i < count($unsorted_terms); $i++) {
+
+    $unsorted_term = $unsorted_terms[$i];
+
+    if ($unsorted_term instanceof Token){
+
+      if($unsorted_term->type === TokenType::UNARY_OPERATOR){
+        $new_term = new ExpressionTermNode(tokens: [$unsorted_term], children: [$unsorted_terms[$i + 1]]);
+        $unsorted_terms_with_applied_unary_operators[] = $new_term;
+        $i++;
+        continue;
+      }
+      elseif ($unsorted_term->type === TokenType::UNARY_BINARY_OPERATOR){
+        $prev_one_is_operator = $i > 0 && $unsorted_terms[$i - 1] instanceof Token;
+        if($prev_one_is_operator || $i === 0){
+          $new_term = new ExpressionTermNode(tokens: [$unsorted_term], children: [$unsorted_terms[$i + 1]]);
+          $unsorted_terms_with_applied_unary_operators[] = $new_term;
+          $i++;
+          continue;
+        }
+        else{
+          $unsorted_term->type = TokenType::BINARY_OPERATOR;
+        }
+      }
+
+    }
+
+    $unsorted_terms_with_applied_unary_operators[] = $unsorted_term;
+
+  }
+
+  $unsorted_terms = $unsorted_terms_with_applied_unary_operators;
 
   # term reduction here, based on precedence level
 

@@ -103,8 +103,6 @@ function get_signs() : array {
     "." => TokenType::BINARY_OPERATOR,
     ";" => TokenType::SEMICOLON,
     "$" => TokenType::DOLLAR,
-    "@" => TokenType::AT_SIGN,
-    "@@" => TokenType::DOUBLE_AT_SIGN,
     "?" => TokenType::BINARY_OPERATOR,
     " not " => TokenType::UNARY_OPERATOR,
     " and " => TokenType::BINARY_OPERATOR,
@@ -127,11 +125,11 @@ enum StatementType: string {
 
 enum Keywords: string {
   case _PUB = 'pub';
+  case _EXTERN = 'extern';
   case _CONST = 'const';
   case _FN = 'fn';
   case _STRUCT = 'struct';
   case _TRAIT = 'trait';
-  case _USE = 'use';
   case _RETURN = 'return';
   case _CONTINUE = 'continue';
   case _BREAK = 'break';
@@ -140,10 +138,8 @@ enum Keywords: string {
   case _ELSE = 'else';
   case _FOR = 'for';
   case _ENUM = 'enum';
-  case _SELF = 'self';
-  case _MODULE = 'module';
-  case _RULESET = 'ruleset';
-  case _ERROR = 'error';
+  case _USE = 'use';
+  #case _SELF = 'self';
 /*  case _LIST = 'List';
   case _MAP = 'Map';
   case _UNION = 'Union';
@@ -221,7 +217,11 @@ abstract class AstNode {
 
     echo $indent_str . static::class. " : ". $token_value . "\n";
     foreach($this->children as $child){
-      $child->print_as_tree($indent + 1);
+      if($child){
+        $child->print_as_tree($indent + 1);
+      }else{
+        echo print_r($child, true);
+      }
     }
   }
 
@@ -282,7 +282,10 @@ class BoolLiteralNode extends AstNode {}
 
 
 # TYPE STUFF
-class TypeExpressionNode extends AstNode {}
+class TypeExpressionNode extends AstNode {
+  public bool $is_local = false;
+  public bool $is_const = false;
+}
 
 class TypeIdentifierNode extends AstNode {}
 
@@ -335,3 +338,5 @@ class FieldDefinitionNode extends AstNode {}
 class TypeDefinitionNode extends AstNode {
   public string $type;
 }
+
+class UseNode extends AstNode {}

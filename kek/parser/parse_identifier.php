@@ -1,9 +1,5 @@
 <?php
 
-include_once __DIR__ . "/../data.php";
-include_once __DIR__ . "/../tokenizer.php";
-include_once __DIR__ . "/../parser_helper.php";
-
 /**
  * @param array<Token> $tokens
  * @param int $index
