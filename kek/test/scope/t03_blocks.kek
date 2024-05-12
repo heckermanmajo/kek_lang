@@ -12,4 +12,12 @@
         return 13
     }
 
+    # debug scope
+    # only executed in debug mode
+    debug{
+        out("debug information")
+        expensive_check()
+        assert(some_condition())
+    }
+
 }

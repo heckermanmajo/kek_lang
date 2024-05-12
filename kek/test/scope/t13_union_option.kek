@@ -1,0 +1,46 @@
+{
+  # ? option operator
+  foo :: fn(arg: ?User){
+    if (user := ?arg) {
+      out(user.name)
+    }
+  }
+
+ # Union operator
+  bar :: fn(arg: Int|String){
+    if (str := arg|String) {
+      out(str)
+    }
+    elif (int := arg|Int) {
+      out(int)
+    }
+  }
+
+  baz :: fn() -> Int|String {
+    return 1
+  }
+
+
+  MyTuple :: struct{ name1: Int name2: String}
+
+  foo :: fn(arg: const MyTuple) -> const MyTuple|Error {
+    out(arg.name1)
+    out(arg.name2)
+  }
+
+  Vec2 :: struct{ x: Int y: Int }
+
+  multiple_return_types :: fn(arg: Int) -> Vec2 {
+    return Vec2(x=arg y=arg)
+  }
+
+  qux :: fn(arg: List(Int)){
+    if my_int := arg.get(12) {
+       out("12th element is: " + my_int)
+    } else {
+       out("12th element is not present")
+    }
+  }
+
+
+}

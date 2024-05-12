@@ -24,26 +24,35 @@
        return a
     }
 
+    # not allowed
+    #a.b.c(1+3).lol = 123
+    set name = 12
+    set name.name.name = expression
+    set my_array.12 = Unit.new(12 124)
+    set my_map."key" = "value"
+
+
+    my_option := my_array.44
 
     my_function_call := myF1(1 2 3)
-    my_function_call := myF1(a = 1 b =2 c=3)
+    my_function_call := myF1(a=1 b=2 c=3)
     # todo: this problem sucks ...
-    my_function_call := Vector()(a = 1 b =2 c=3)
+    my_function_call := Vector()(a=1 b=2 c=3)
 
     MyStruct :: struct{
         a: Int
-        expected_function: Fn()->Int
+        expected_function: fn()->Int
     }
 
     mys := MyStruct()(a=1234)
 
-    b := number_guess() ? error
+    result := number_guess()
 
-    if b := number_guess() ? bool {
+    if b := result|Bool {
         out("we got " + b)
-    }elif s := _?string {
+    }elif s := result|String {
         out(s)
-    }elif err := _?error {
+    }elif err := result|Error {
         out(err.message)
         out(err.traceback)
     }else {}
@@ -141,17 +150,25 @@
     @no_global_import_of_std_lib :: true
 
     # todo: we cannot parse the type inference operator arrow
-    number_guess :: fn(number: Int) -> Union(Bool, Error, String){
+    number_guess :: fn(number: Int) -> Bool|Error|String {
        if number < 0 {
           #return ->(bool = false) -> shorthand for return type construction literal Union(Bool, Error, String)
           # return Union(Bool, Error, String)(bool = false)
        }elif number > 100 {
-          #return ->(error = Error("You suck"))
+          #return (error = Error("You suck"))
        }else{
           #return ->(string = "Eat Ass!")
           # return -> induces the return type
        }
     }
 
+    fool :: fn(vec: Vector2) -> Vector2 {
+        return _(x=1 y=0)
+    }
+    fool :: fn(vec: Vector2) -> Map(Int String) {
+        return _(1234="lol" 124="pooop")
+    }
+    fool(Vector2(x=124 y=0))
+    fool(_(x=124 y=0))
     #a ( a b c ) (a b c d)
 }

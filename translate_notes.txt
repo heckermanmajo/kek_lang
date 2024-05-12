@@ -1,0 +1,12 @@
+For translating kek, we only need
+
+structs  or  maps
+Lists
+if and for
+functions
+
+namespaces -> simple naming
+
+anonymous scope -> id
+
+scopeid__scopeid__scopeid__name

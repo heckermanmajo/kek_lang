@@ -1,8 +1,13 @@
 #!/bin/bash
 
-php parser/parse_identifier.php
-php parser/parse_call_argument_list.php
-php parser/parse_dot_access_expression.php
-php parser/parse_type_expression.php
-php parser/parse_expression_term.php
-php parser/parse_scope.php
+test_folder="./test/scope"
+all_test_files=()
+for file in $test_folder/*.kek; do
+    all_test_files+=($file)
+done
+
+# shellcheck disable=SC2068
+for file in ${all_test_files[@]}; do
+    echo "Running test $file"
+    ./kek.php ast $file && echo "Test $file passed" || exit 1
+done

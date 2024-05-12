@@ -10,10 +10,12 @@ include_once __DIR__ . "/tokenizer.php";
 
 include_once __DIR__ . "/parser/parse_block.php";
 include_once __DIR__ . "/parser/parse_call_argument_list.php";
+include_once __DIR__ . "/parser/parse_const.php";
 include_once __DIR__ . "/parser/parse_control_flow.php";
 include_once __DIR__ . "/parser/parse_expression_term.php";
 include_once __DIR__ . "/parser/parse_identifier.php";
 include_once __DIR__ . "/parser/parse_scope.php";
+include_once __DIR__ . "/parser/parse_set.php";
 include_once __DIR__ . "/parser/parse_type_expression.php";
 include_once __DIR__ . "/parser/parse_value_literal.php";
 
@@ -91,10 +93,16 @@ $tokens = tokenize($file);
 $index = 0;
 $ast = parse_scope($tokens, $index);
 
-
-if($command === "ast") {
-  echo "\n\nAST:\n\n";
-  $ast->print_as_tree();
+try {
+  if ($command === "ast") {
+    echo "\n\nAST:\n\n";
+    $ast->print_as_tree();
+  }
+}catch (Exception $e) {
+  echo "Error: " . $e->getMessage();
+  echo "\n\n";
+  echo $e->getTraceAsString();
+  exit(1);
 }
 
 # name-resolution

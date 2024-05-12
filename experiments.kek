@@ -79,6 +79,42 @@
     }
 
 
+    union_consumer :: fn(arg: Union(Int Float)){
+
+    }
+
+    union_consumer(Union(Int Float).fromInt(1))
+    union_consumer(->.fromInt(1))
+    union_consumer :: fn(arg: Int|Float){
+       if(number := arg|Int){
+           print(number)
+       }
+       elif(number := arg|Float){
+           print(number)
+       }
+    }
+
+    my_optionals :: fn(arg: ?Int){
+       if(number := arg?){
+           print(number)
+       }
+    }
+
+    my_optionals(1)
+    my_optionals(nil)
+
+    union_consumer(1)
+    union_consumer(1)
+
+    # todo: we want to use | for unions and ? for optionals
+    #       since we need to build them into the language
+    #       no matter what
+
+    ? # option resolve operator + option make operator
+
+    # we then also don need to induce the type
+    # we can pass in a int where a union is needed and
+    # "expand" the code to the right type
 
     # create a list type -> template
     # just generates a list of type of code

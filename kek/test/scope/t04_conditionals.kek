@@ -8,11 +8,12 @@
 
     }
 
-    if b := number_guess() ? bool {
+
+    if b {
         out("we got " + b)
-    }elif s := _?string {
+    }elif c {
         out(s)
-    }elif err := _?error {
+    }elif d {
         out(err.message)
         out(err.traceback)
     }else {}

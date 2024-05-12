@@ -39,6 +39,7 @@ function parse_control_flow(array $tokens, int &$index): ForNode|IfNode {
 
 function parse_condition(array $tokens, int &$index): ConditionNode {
   # [<indentifer> :=] <expression> [.. <expression>] [; expression]
+
   $ast_node = new ConditionNode(tokens: [], children: []);
   $token = $tokens[$index];
 
@@ -47,10 +48,16 @@ function parse_condition(array $tokens, int &$index): ConditionNode {
 
     $next_token = $tokens[$index + 1];
 
-    if ($next_token->type == TokenType::VAR_ASSIGNMENT) {
+    if ($next_token->type == TokenType::VAR_ASSIGNMENT || $next_token->type == TokenType::DOUBLE_COLON) {
       # the syntax must be
       # [<indentifer> :=] <expression> [.. <expression>] [; expression]
-      $variable_definition_node = new VariableDefinitionNode(tokens: [], children: []);
+
+      if($next_token->type == TokenType::VAR_ASSIGNMENT){
+        $variable_definition_node = new VariableDefinitionNode(tokens: [], children: []);
+      }else{
+        $variable_definition_node = new ConstDefinitionNode(tokens: [], children: []);
+      }
+
       $variable_definition_node->children[] = parse_identifier($tokens, $index);
       $index++; # jump over := symbol
       $variable_definition_node->children[] = parse_expression_term($tokens, $index);

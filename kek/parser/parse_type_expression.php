@@ -7,6 +7,21 @@
 #fn(<type expression list>)-><type expression>
 #<identifier>(<type expression list>)
 
+
+/*
+
+Type Int
+Construction Literal Player(x=124)
+Generic List(Int)
+GenericConstruction Literal List(Player)(Player(x=124) Player(x=125))
+TypeName()
+
+this is its own function
+Function Fn(Int Int)->Int
+
+*/
+
+# todo: check for an ? and | operator
 /**
  * @param array<Token> $tokens
  * @param int $index
@@ -21,47 +36,75 @@ function parse_type_expression(array &$tokens, int &$index): TypeExpressionNode 
 
   $token = $tokens[$index];
 
-  if($token->type === TokenType::KEYWORD && $token->value === "local"){
-    $ast_node->is_local = true;
-    $index++;
-  }
-  if ($token->type === TokenType::KEYWORD && $token->value === "const") {
-    $ast_node->is_const = true;
-    $index++;
+  # | operator
+
+  $collected_union_types = [];
+  while(true) {
+    $token = $tokens[$index];
+    if (
+      $token->type === TokenType::IDENTIFIER
+      || $token->type === TokenType::KEYWORD && $token->value === "local"
+      || $token->type === TokenType::KEYWORD && $token->value === "const"
+    ) {
+      $collected_union_types[] = parse_type_identifier($tokens, $index);
+    }
+
+    $token = $tokens[$index];
+    if($token->value === "|"){
+      $index++;
+      continue;
+    }
+
+
+    break;
+
   }
 
-  $is_identifier = $token->type === TokenType::IDENTIFIER;
-  $is_self = $token->value === "Self" && $token->type === TokenType::IDENTIFIER;
-  $is_fn = $token->value === "Fn" && $token->type === TokenType::IDENTIFIER;
-
-  #echo "lol";
-  if (($is_identifier || $is_self) && $token->value != "Fn") {
-    $ast_node->children[] = parse_type_identifier($tokens, $index);
-    return $ast_node;
+  if (count($collected_union_types) > 1) {
+    $ast_node->children[] = new UnionTypeNode(
+      tokens: [],
+      children: $collected_union_types
+    );
+  } else {
+    $ast_node->children[] = $collected_union_types[0];
   }
 
-  if($is_fn){
-    #echo "kekekekek\n";
-    $ast_node->children[] = parse_type_function_signature($tokens, $index);
-    return $ast_node;
-  }
-
-  throw new SyntaxError("Expected type identifier or Self or Fn, got: $token");
+  return $ast_node;
 
 }
 
 function parse_type_identifier(array &$tokens, int &$index): AstNode {
   #echo $tokens[$index + 1]->type->name;
-  $next_one_is_brace = count($tokens) > $index + 1 && $tokens[$index + 1]->type === TokenType::OPEN_PAREN;
+$token = $tokens[$index];
+  $ast_node = new TypeIdentifierNode(tokens: [], children: []);
+
+  if($token->value === "local"){
+    $index++;
+    $ast_node->is_local = true;
+  }
   $token = $tokens[$index];
 
-  $ast_node = new TypeIdentifierNode(tokens: [$token], children: []);
+  if($token->value === "const"){
+    $index++;
+    $ast_node->is_const = true;
+  }
+
+  $token = $tokens[$index];
+  $next_one_is_brace = count($tokens) > $index + 1 && $tokens[$index + 1]->type === TokenType::OPEN_PAREN;
+
+  $ast_node->tokens[] = $token;
   $index++;
 
   #echo "flagg";
   if ($next_one_is_brace){
     #echo "parse_type_identifier_list: next one is brace\n";
     $ast_node->children[] = parse_type_identifier_list($tokens, $index);
+  }
+
+  $is_option = $tokens[$index]->value == "?";
+  if ($is_option) {
+    $ast_node->is_optional = true;
+    $index++;
   }
 
   return $ast_node;
@@ -85,7 +128,7 @@ function parse_type_identifier_list(array &$tokens, int &$index): AstNode {
   }
 
   while (true) {
-    $node = parse_type_identifier($tokens, $index);
+    $node = parse_type_expression($tokens, $index);
     $ast_node->children[] = $node;
 
     if ($index >= count($tokens)) {
@@ -104,143 +147,3 @@ function parse_type_identifier_list(array &$tokens, int &$index): AstNode {
   return $ast_node;
 
 }
-
-function parse_type_function_signature(array &$tokens, int &$index): AstNode {
-  # Fn () -> TypeExpression
-  $token = $tokens[$index];
-  $ast_node = new TypeFunctionNode(tokens: [$token], children: []);
-  $next_one_is_open_paren = count($tokens) > $index + 1 && $tokens[$index + 1]->type === TokenType::OPEN_PAREN;
-
-  $index++;
-
-  if (!$next_one_is_open_paren) {
-    throw new SyntaxError("Expected open parenthesis for function signature, got: $tokens[$index]");
-  }
-
-  $list_node = parse_type_identifier_list($tokens, $index);
-  $ast_node->children[] = $list_node;
-
-  $next_is_arrow = count($tokens) > $index && $tokens[$index]->type === TokenType::ARROW;
-
-  if($next_is_arrow){
-    $index++;
-    $type_expression_node = parse_type_expression($tokens, $index);
-    $return_type_node = new ReturnTypeNode(tokens: [], children: [$type_expression_node]);
-    $ast_node->children[] = $return_type_node;
-  }
-
-  return $ast_node;
-
-}
-
-
-if (count(debug_backtrace()) == 0) {
-
-  $expression = "List";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-  $expression = "List(String)";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-  $expression = "Fn()->List(String)";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-  $expression = "Fn()";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-  $expression = "Fn(Self,Int)->Self";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-  $expression = "List(String,Map(String,Int))";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-  $expression = "List(String,Map(String,Int))";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-  $expression = "Fn(Map(String,Int),List(String))->List(String)";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-  $expression = "Fn(Map(String,Int),List(Map(String,Union(Nil,Int,Error))))->List(Map(String,Union(Nil,Int,Error)))";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-
-  $expression = "Fn(Map(String,Int),List(Map(String,Union(Nil,Int,Error))))";
-  echo "\n---------------------------------\n";
-  echo $expression . "\n";
-  echo "---------------------------------\n";
-  $tokens = tokenize($expression, verbose: false);#
-  $index = 0;
-  $node = parse_type_expression($tokens, $index);
-  $node->print_as_tree();
-
-
-
-
-  echo "\n---------------------------------\n";
-  echo "All TYPE-EXPRESSION tests passed☑️\n";
-  echo "---------------------------------\n";
-}
-
-
-

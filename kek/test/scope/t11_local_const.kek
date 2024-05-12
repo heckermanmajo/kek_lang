@@ -1,7 +1,43 @@
 {
 
+  #TE = <local> <const> List <(Int)>
 
+  #Fn(TE ...)->TE
 
+  a := local Vec3I.(1 2 3)("function call")
+  b := local List(List(Int)).(1 2 3)
 
+  myb :: byte(7)
+  my_f32 := 5.0
+  my_f64 := f64(5.0)  # F64
+  my_int := toi(my_f32)
+  extern toi :: fn(value: Float|String|Bool) -> Int
+
+  p := Player.(x=1 y=2 z=3)
+
+  f :: fn(p: Player){
+
+  }
+
+  f(.(x=1 y=2 z=3))
+  f(_(x=1 y=2 z=3))
+  f(_.(x=1 y=2 z=3))
+
+  #List:List:List:Int
+  #Map:String->Int
+
+  #suser := Memory(User).allocate(10)
+
+  foo :: fn(arg1: const Vec3I) -> const Vec3I {
+    println(arg1)
+    return arg1
+  }
+
+  foo :: fn(arg1: local const Vec3I) -> const Vec3I  {
+    println(arg1)
+    # return arg1  err
+    new_const :: Vec3I(arg1.x arg1.y arg1.z)
+    return new_const
+  }
 
 }

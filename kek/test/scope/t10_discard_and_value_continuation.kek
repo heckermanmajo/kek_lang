@@ -7,20 +7,20 @@
         return 1
     }
 
-    _ = return_one() # ignore the return value -> do it for the side effect
+    _ := return_one() # ignore the return value -> do it for the side effect
 
 
-    factory :: fn() -> Union(Int String Error){
-        return ->(int=124)
+    factory :: fn() -> Int|String|Error {
+        return 123
     }
 
     {
         result :: factory()
-        if (i := result ? int) {
+        if (i := result|Int) {
             print(i)
-        elif( s := result ? string) {
+        elif( s := result|String) {
             print(s)
-        elif( e := result ? error) {
+        elif( e := result|Error) {
             print(e)
         }
     }

@@ -5,9 +5,11 @@
         y: Int
     }
 
-    MyGenericStruct :: struct(T1 T2)(Position){
-        a: T1
-        b: T2
+    # normal type names cannot start with "T_"
+    # so it is clear which list is which ...
+    MyGenericStruct :: struct(T_1 T_2)(Position){
+        a: T_1
+        b: T_2
         c: Position
     }
 

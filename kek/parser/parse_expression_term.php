@@ -2,27 +2,30 @@
 
 function get_precedence_level(Token $t): int {
   return match ($t->value) {
-    "+" => 1,
-    "-" => 1,
-    "*" => 2,
-    "/" => 2,
-    "//" => 2,
-    "**" => 2,
-    "%" => 2,
-    "==" => 3,
-    "!=" => 3,
-    "<" => 3,
-    ">" => 3,
-    "<=" => 3,
-    ">=" => 3,
-    " and " => 4,
-    " or " => 5,
-    " not " => 6,
-    "." => 7,
-    "?" => 7,
+    "+" => 6,
+    "-" => 6,
+    "*" => 7,
+    "/" => 7,
+    "//" => 7,
+    "**" => 7,
+    "%" => 7,
+    "==" => 8,
+    "!=" => 8,
+    "<" => 8,
+    ">" => 8,
+    "<=" => 8,
+    ">=" => 8,
+    " and " => 9,
+    " or " => 10,
+    " not " => 11,
+    "|" => 12,
+    "." => 13,
+    "?" => 13,
     default => throw new SyntaxError("Unknown operator: $t")
   };
 }
+
+const MAX_PRECEDENCE_LEVEL = 13;
 
 
 /**
@@ -62,47 +65,11 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
     $token = $tokens[$index];
 
-
-    # operators
-    if (
-      $token->type === TokenType::UNARY_OPERATOR
-      || $token->type === TokenType::BINARY_OPERATOR
-      || $token->type === TokenType::UNARY_BINARY_OPERATOR
-    ) {
-      $unsorted_terms[] = $token;
-      $index++;
-      continue;
-    }
-
-    # if we encounter an ( we start a new term
-    $token_is_open_paren = $token->type === TokenType::OPEN_PAREN;
-    if ($token_is_open_paren) {
-      $index++;
-      $node = parse_expression_term($tokens, $index);
-      $token = $tokens[$index];
-      $token_is_close_paren = $token->type === TokenType::CLOSE_PAREN;
-      if (!$token_is_close_paren) {
-        throw new SyntaxError("Expected closing parenthesis, got: $token");
-      }
-      $index++;
-      $unsorted_terms[] = $node;
-      continue;
-    }
-
     // break on an close paren, since if you reach one here
     // you are a subexpression and should not continue
     $token_is_close_paren = $token->type === TokenType::CLOSE_PAREN;
     if ($token_is_close_paren) {
       break;
-    }
-
-    if($token->type == TokenType::KEYWORD && $token->value == "use"){
-      $node = new UseNode(tokens: [$token], children: []);
-      $index++;
-      $expression = parse_expression_term($tokens, $index);
-      $node->children[] = $expression;
-      $unsorted_terms[] = $node;
-      continue;
     }
 
 
@@ -112,20 +79,35 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
       if ($tokens[$index]->type === TokenType::IDENTIFIER) {
 
+
         # check if the identifier is a type, parse the type
-        $identifier_is_type = ctype_upper($tokens[$index]->value[0]);
+        $identifier_is_type = ctype_upper($tokens[$index]->value[0]) || $tokens[$index]->value === "_";
         if($identifier_is_type){
 
           $type_expression = parse_type_expression($tokens, $index);
-
+          # TODO: EAT THE . in case of a literal
+          # todo: expect a . before the open parenthesis
           $next_token = $tokens[$index];
+          $next_next_token = $tokens[$index + 1] ?? null;
+          #echo "\nFLAGG\n";
+          #echo $next_token;
+          #echo $next_next_token;
 
           # construction literal -> type-expression (call-argument-list)
-          if ($next_token->type === TokenType::OPEN_PAREN) {
+          # .(  -> signal for construction literal
+          # .name() -> is just a function call to a static method
+          #            (usage of a strict as a namespace)
+          if (
+            $next_token->type === TokenType::BINARY_OPERATOR
+            && $next_token->value === "."
+            && $next_next_token->type === TokenType::OPEN_PAREN
+          ) {
+            $index++; # jump over the dot
             $node = new ConstructionLiteralNode(tokens: [], children: [$type_expression]);
             $node->children[] = parse_call_argument_list($tokens, $index);
             $expression_node = new ExpressionNode(tokens: [], children: [$node]);
             $unsorted_terms[] = $expression_node;
+            echo "\nFLAGG\n";
             return;
           }
 
@@ -153,12 +135,22 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
         }
 
         # else it is a simple identifier
-
         $node = parse_identifier($tokens, $index);
         $ast_expression_node->children[] = $node;
         $unsorted_terms[] = $ast_expression_node;
         return;
 
+      }
+
+      # in case w
+      $token = $tokens[$index];
+      if(
+        $token->type === TokenType::UNARY_OPERATOR
+        || $token->type === TokenType::BINARY_OPERATOR
+        || $token->type === TokenType::UNARY_BINARY_OPERATOR
+        || $token->type === TokenType::OPEN_PAREN
+      ) {
+        return;
       }
 
       # check for literals, etc.
@@ -167,6 +159,32 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
       $unsorted_terms[] = $ast_expression_node;
     })($tokens, $index);
+
+    # operators
+    if (
+      $token->type === TokenType::UNARY_OPERATOR
+      || $token->type === TokenType::BINARY_OPERATOR
+      || $token->type === TokenType::UNARY_BINARY_OPERATOR
+    ) {
+      $unsorted_terms[] = $token;
+      $index++;
+      continue;
+    }
+
+    # if we encounter an ( we start a new term
+    $token_is_open_paren = $token->type === TokenType::OPEN_PAREN;
+    if ($token_is_open_paren) {
+      $index++;
+      $node = parse_expression_term($tokens, $index);
+      $token = $tokens[$index];
+      $token_is_close_paren = $token->type === TokenType::CLOSE_PAREN;
+      if (!$token_is_close_paren) {
+        throw new SyntaxError("Expected closing parenthesis, got: $token");
+      }
+      $index++;
+      $unsorted_terms[] = $node;
+      continue;
+    }
 
     # todo: handle expression block
 
@@ -229,7 +247,7 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
 
   # term reduction here, based on precedence level
 
-  $highest_precedence_level = 7;
+  $highest_precedence_level = MAX_PRECEDENCE_LEVEL;
   for ($i = $highest_precedence_level; $i >= 1; $i--) {
 
     $replaced_version_terms = [];
@@ -275,7 +293,7 @@ function parse_expression_term(array $tokens, int &$index): ExpressionTermNode|E
   }
 
   if (count($unsorted_terms) > 1) {
-    throw new SyntaxError("Expected only one term left, got: " . print_r($unsorted_terms, true));
+    throw new SyntaxError("Expected only one term left, got: ".count($unsorted_terms). " - " . print_r($unsorted_terms, true));
   }
 
   $node = $unsorted_terms[0];

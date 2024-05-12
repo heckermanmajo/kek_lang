@@ -46,7 +46,7 @@ function parse_call_argument_list(array $tokens, int &$index): CallArgumentListN
           $index++; # jump over the equals sign
           $expression_term_2 = parse_expression_term($tokens, $index);
           $assignment_node = new AssignmentNode(
-            tokens: [$next_token],
+            tokens: [$token],
             children: [
               $expression,
               $expression_term_2

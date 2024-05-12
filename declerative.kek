@@ -1,0 +1,13 @@
+
+debug{
+
+
+}
+
+Form(
+    method = "POST"
+    children = ->(
+       H1("Hello World"),
+       P("This is a test")
+    )
+)

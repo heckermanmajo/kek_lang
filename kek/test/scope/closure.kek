@@ -1,0 +1,32 @@
+
+{
+
+    Copyable :: trait {
+        #copy :: fn(other: MyClosure) -> MyClosure
+    }
+
+    MyClosure :: struct(
+        Copyable
+    ){
+        a : Vec3I
+        call :: fn(self: MyClosure){
+            self.a.x = self.a.x + 1
+            println(self.a.x)
+        }
+
+        copy :: fn(other: MyClosure) -> MyClosure {
+            a = other.a
+            #return MyClosure.(a = other.a)
+        }
+
+    }
+    #b := Vec3I.(1 2 3)
+    #c := MyClosure.(a = b)
+    c.a = c.a.x + 1257
+
+    c2 := MyClosure.copy(c)
+
+    c.call()
+    println(c.a.x) # 1258
+
+}

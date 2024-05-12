@@ -25,6 +25,11 @@ It is very wow.
 - struct and methods
 - not a bunch of shit-features
 
+## Kek Code is Crafted
+Good code is slowly crafted and not shitted out in one go.
+Kek is optimized for crafting code slowly.
+If you want to cobble sth. together use python.
+
 ## Zen of KEK
 
 - Every well-intentioned feature will be abused, so have few of them
@@ -73,6 +78,7 @@ game development.
 - working (simple) generics
 - doc comments
 - nested comments
+- SHORTHAND isset: ??my_array.44 { out(_) }
 
 
 ## Special Thanks to:

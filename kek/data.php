@@ -56,8 +56,6 @@ enum TokenType: string {
 
   case DOUBLE_COLON = 'DOUBLE_COLON';
 
-  case DOT = 'DOT';
-
   case SEMICOLON = 'SEMICOLON';
 
   case DOLLAR = 'DOLLAR';
@@ -103,7 +101,7 @@ function get_signs() : array {
     "." => TokenType::BINARY_OPERATOR,
     ";" => TokenType::SEMICOLON,
     "$" => TokenType::DOLLAR,
-    "?" => TokenType::BINARY_OPERATOR,
+    "?" => TokenType::UNARY_OPERATOR,
     " not " => TokenType::UNARY_OPERATOR,
     " and " => TokenType::BINARY_OPERATOR,
     " or " => TokenType::BINARY_OPERATOR,
@@ -116,6 +114,13 @@ function get_signs() : array {
     "!=" => TokenType::BINARY_OPERATOR,
     "**" => TokenType::BINARY_OPERATOR,
     "//" => TokenType::BINARY_OPERATOR,
+    "<" => TokenType::BINARY_OPERATOR,
+    ">" => TokenType::BINARY_OPERATOR,
+    "<=" => TokenType::BINARY_OPERATOR,
+    ">=" => TokenType::BINARY_OPERATOR,
+    "!" => TokenType::UNARY_OPERATOR,
+    "&" => TokenType::BINARY_OPERATOR,
+    "|" => TokenType::BINARY_OPERATOR,
   ];
   return $signs;
 }
@@ -139,6 +144,7 @@ enum Keywords: string {
   case _FOR = 'for';
   case _ENUM = 'enum';
   case _USE = 'use';
+  case _SET = 'set';
   #case _SELF = 'self';
 /*  case _LIST = 'List';
   case _MAP = 'Map';
@@ -207,6 +213,10 @@ abstract class AstNode {
   ) {
   }
 
+  public function extra_data(): string{
+    return "";
+  }
+
   public function print_as_tree(int $indent = 0){
     // display the ast node in nice s format
     $indent_str = str_repeat("   ", $indent);
@@ -215,7 +225,7 @@ abstract class AstNode {
       $token_value = $this->tokens[0]->value;
     }
 
-    echo $indent_str . static::class. " : ". $token_value . "\n";
+    echo $indent_str . static::class. " : ". $token_value . $this->extra_data() . "\n";
     foreach($this->children as $child){
       if($child){
         $child->print_as_tree($indent + 1);
@@ -287,7 +297,27 @@ class TypeExpressionNode extends AstNode {
   public bool $is_const = false;
 }
 
-class TypeIdentifierNode extends AstNode {}
+class TypeIdentifierNode extends AstNode {
+  public bool $is_local = false;
+  public bool $is_const = false;
+  public bool $is_optional = false;
+
+  public function extra_data(): string{
+   $extra = "";
+    if($this->is_local) {
+      $extra .= " (local)";
+    }
+    if($this->is_const) {
+      $extra .= " (const)";
+    }
+    if($this->is_optional) {
+      $extra .= " (optional)";
+    }
+    return $extra;
+  }
+}
+
+class TypeUnionNode extends AstNode {}
 
 class TypeFunctionNode extends AstNode {}
 
@@ -340,3 +370,9 @@ class TypeDefinitionNode extends AstNode {
 }
 
 class UseNode extends AstNode {}
+
+class VariableSettingNode extends AstNode {}
+
+class SetNode extends AstNode {}
+
+class UnionTypeNode extends AstNode {}
