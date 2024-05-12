@@ -1,0 +1,10 @@
+
+{
+    import("./path/to/file/with/MyClass" print pprint)
+    Std :: import("std" print)  # load the whole std module into this const
+    print :: Std.print
+    pprint :: Std.pprint # error
+
+    out :: import("std.fmt").out
+    MyClass :: import("./path/to/file/with/MyClass").MyClass
+}

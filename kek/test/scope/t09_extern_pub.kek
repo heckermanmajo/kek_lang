@@ -1,0 +1,18 @@
+
+
+{
+
+    ##
+        Defined outside of kek within some
+        run time code.
+    ##
+    extern pub out :: Fn(String)
+
+    # simple public function
+    pub fn kek() {
+        out("Hello, World!".to_string());
+    }
+
+    pub Vec
+
+}

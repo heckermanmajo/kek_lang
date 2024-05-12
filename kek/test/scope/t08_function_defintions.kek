@@ -1,0 +1,7 @@
+{
+
+  my_function :: fn() -> Int {
+    return 42
+  }
+
+}

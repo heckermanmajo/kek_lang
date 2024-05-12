@@ -1,0 +1,20 @@
+{
+
+    Position :: struct{
+        x: Int
+        y: Int
+    }
+
+    MyGenericStruct :: struct(T1 T2)(Position){
+        a: T1
+        b: T2
+        c: Position
+    }
+
+    my_instance :: MyGenericStruct(Int String){
+        a = 1
+        b = "hello"
+        c = Position(1, 2)
+    }
+
+}

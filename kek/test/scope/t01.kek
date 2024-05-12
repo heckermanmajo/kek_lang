@@ -1,18 +1,5 @@
 {
 
-    FunctionRules :: RuleSet(
-        max_arguments = 3
-    )
-
-    DummyRules :: RuleSet(
-        only_local = true
-    )
-
-
-    #use RuleSet()(
-    #    no_fuck_around = true
-   # )
-
     my_const_string :: "lol"
 
     my_var := 124
@@ -90,6 +77,8 @@
 
     }
 
+    a := Player.new()
+
     #import "std" print;pprint
 
     #print :: import("./path/to/file/with/MyClass" print pprint)
@@ -142,7 +131,7 @@
 
     }
 
-    lol:: lolplpl
+    lol :: lolplpl
 
     GenericTrait :: trait(T){
         field: T
@@ -154,7 +143,7 @@
     # todo: we cannot parse the type inference operator arrow
     number_guess :: fn(number: Int) -> Union(Bool, Error, String){
        if number < 0 {
-          #return ->(bool = false) #-> shorthand for return type construction literal Union(Bool, Error, String)
+          #return ->(bool = false) -> shorthand for return type construction literal Union(Bool, Error, String)
           # return Union(Bool, Error, String)(bool = false)
        }elif number > 100 {
           #return ->(error = Error("You suck"))
@@ -163,4 +152,6 @@
           # return -> induces the return type
        }
     }
+
+    #a ( a b c ) (a b c d)
 }

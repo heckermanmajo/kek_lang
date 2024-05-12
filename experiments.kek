@@ -96,3 +96,24 @@
     Option(User)
     TreeNode(Node)
     Queue(Message)
+
+
+{
+
+    Position :: struct{
+        x: Int
+        y: Int
+    }
+
+    MyGenericStruct :: struct(T1 T2)(Position){
+        a: T1
+        b: T2
+        c: Position
+    }
+
+
+
+}
+
+
+

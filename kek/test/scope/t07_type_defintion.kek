@@ -1,0 +1,52 @@
+{
+
+    Postion :: trait{
+        x: Int y:Int
+        abstract_method :: Fn(Self)->String
+        abstract_static_method :: Fn()->String
+    }
+
+    PlayerState :: enum{
+        idle
+        walking_left
+        walking_right
+        walking_up
+        walking_down
+    }
+
+    Player :: struct(Position){
+        name: String
+        state: PlayerState
+        abstract_method :: fn(self:Player) -> String{
+            return "Player"
+        }
+        abstract_static_method :: fn() -> String{
+            return "Player"
+        }
+    }
+
+    Enemy :: struct(Position){
+        name: String
+        abstract_method :: fn(self:Enemy) -> String{
+            return "Enemy"
+        }
+        abstract_static_method :: fn() -> String{
+            return "Enemy"
+        }
+    }
+
+    Game :: struct{
+        player: Player
+        enemies: List(Enemy)
+    }
+
+
+    StructAsNamespace :: struct{
+        print :: fn(){
+            println("StructAsNamespace")
+        }
+    }
+
+    StructAsNamespace.print()
+
+}

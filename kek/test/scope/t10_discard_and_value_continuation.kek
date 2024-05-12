@@ -1,0 +1,29 @@
+
+
+
+{
+
+    return_one :: fn() -> Int{
+        return 1
+    }
+
+    _ = return_one() # ignore the return value -> do it for the side effect
+
+
+    factory :: fn() -> Union(Int String Error){
+        return ->(int=124)
+    }
+
+    {
+        result :: factory()
+        if (i := result ? int) {
+            print(i)
+        elif( s := result ? string) {
+            print(s)
+        elif( e := result ? error) {
+            print(e)
+        }
+    }
+
+
+}
