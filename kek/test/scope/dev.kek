@@ -1,0 +1,62 @@
+{
+
+    my_trait :: trait(T_1)(Position){
+        abstract_method :: fn() -> Position
+    }
+
+    pos := Postion.foo(a=123 b=124)
+
+    pos := Postion.(x=12 y=124)
+    pos := Postion(Int).(x=12 y=124)
+    foo :: fn(pos: Postion){
+
+    }
+
+    foo(Postion.(12 12))
+    foo(_.(12 12))
+
+    a.a.s.e
+
+    my_array . 123
+
+    my_map . "key"
+
+    set a = 123
+
+    set a = a.b.c.d().ool()
+
+    s :: struct{
+        a: local const List(Int)
+    }
+
+    foo :: fn(a: local const List(local const Player)) -> local const Player{
+
+        if p :: ?p.0 { # local const Player?
+            p_copy :: Player.copy(p)
+            return p_copy
+        }
+
+    }
+
+    _ := return_one() # ignore the return value -> do it for the side effect
+
+    factory :: fn() -> local Int|String|Error {
+        return 123
+    }
+
+    {
+        result :: factory()
+        if i :: result | Int {
+            print(i)
+        }elif s := result | String {
+            print(s)
+        }elif e := result | Error {
+            print(e)
+        }
+    }
+
+    factory :: fn() -> local Int|local const String?|local Error {
+        return 123
+    }
+
+}
