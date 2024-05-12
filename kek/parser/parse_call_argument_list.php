@@ -74,31 +74,3 @@ function parse_call_argument_list(array $tokens, int &$index): CallArgumentListN
   return $ast_expression_node;
 
 }
-
-
-if (count(debug_backtrace()) == 0) {
-
-  $type_expression = "(moin,lol)";
-  $tokens = tokenize($type_expression, verbose: false);
-
-  $index = 0;
-  $node = parse_call_argument_list($tokens, $index);
-  $node->print_as_tree();
-
-  $type_expression = "(
-    moin,
-    
-    lol     ,
-  
-  wirst,
-  )";
-  $tokens = tokenize($type_expression, verbose: false);
-
-  $index = 0;
-  $node = parse_call_argument_list($tokens, $index);
-  $node->print_as_tree();
-
-
-
-  echo "All tests passed☑️\n";
-}

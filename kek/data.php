@@ -293,8 +293,6 @@ class BoolLiteralNode extends AstNode {}
 
 # TYPE STUFF
 class TypeExpressionNode extends AstNode {
-  public bool $is_local = false;
-  public bool $is_const = false;
 }
 
 class TypeIdentifierNode extends AstNode {
@@ -329,8 +327,19 @@ class ReturnTypeNode extends AstNode {}
 
 class ConstDefinitionNode extends AstNode {#
 
-  public bool $extern;
-  public bool $pub;
+  public bool $extern = false;
+  public bool $pub = false;
+
+  public function extra_data(): string{
+    $extra = "";
+    if($this->extern) {
+      $extra .= " (extern)";
+    }
+    if($this->pub) {
+      $extra .= " (pub)";
+    }
+    return $extra;
+  }
 
 }
 

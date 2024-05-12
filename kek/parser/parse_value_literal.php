@@ -38,10 +38,3 @@ function parse_value_literal(array $tokens, int &$index): ValueLiteralNode {
     throw new SyntaxError("Unexpected token [{$token->type->name}] at value literal: $token ");
 
 }
-
-
-if (count(debug_backtrace()) == 0) {
-
-
-  echo "All tests passed☑️\n";
-}

@@ -1,0 +1,25 @@
+{
+
+    PHP :: import( "php" )
+
+    pub out :: fn(s: local const String){
+        okay :: PHP.function_is_available("echo")
+        if not okay {
+            crash("PHP function echo is not available")
+        }
+        PHP.call("echo" s)
+    }
+
+    pub out :: fn(s: local const String){
+       js_call("console.log" s)
+    }
+
+    pub out :: fn(s: local const String){
+       lua_call("print" s)
+    }
+
+    pub out :: fn(s: local const String){
+       c_call("printf" const_c_string(s))
+    }
+
+}

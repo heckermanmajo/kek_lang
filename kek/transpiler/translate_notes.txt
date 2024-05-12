@@ -1,6 +1,6 @@
 For translating kek, we only need
 
-structs  or  maps
+structs or maps
 Lists
 if and for
 functions

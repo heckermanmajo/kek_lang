@@ -205,19 +205,3 @@ function parse_scope(array $tokens, int &$index): ScopeNode {
   return $ast_node;
 
 }
-
-
-if (count(debug_backtrace()) == 0) {
-  /*
-    $expression_term = "{ }";
-    echo "\n---------------------------------\n";
-    echo $expression_term ."\n";
-    echo "---------------------------------\n";
-    $tokens = tokenize($expression_term, verbose: false);#
-    $index = 0;
-    $node = parse_scope($tokens, $index);
-    $node->print_as_tree();
-  */
-  echo "All SCOPE tests passed☑️\n";
-
-}

@@ -23,35 +23,3 @@ function parse_identifier(array &$tokens, int &$index, bool $can_be_type = false
 
 
 
-if (count(debug_backtrace()) == 0){
-  $type_expression = "moin";
-  $tokens = tokenize($type_expression, verbose: false);
-
-  $index = 0;
-  $node = parse_identifier($tokens, $index);
-  #var_dump($node);
-
-  $node->print_as_tree();
-
-  try{
-    $index = 0;
-    $type_expression = "fn";
-    $tokens = tokenize($type_expression, verbose: false);
-    $node = parse_identifier($tokens, $index);
-    #var_dump($node);
-  } catch (SyntaxError $e) {
-    #echo "GOT EXPECTED ERROR: \n";
-    #echo $e->getMessage() ."\n";
-    #echo "LOL";
-  } catch (Exception $e) {
-    echo "GOT UNEXPECTED ERROR: \n";
-    echo $e->getMessage() ."\n";
-    throw new Exception("Test failed");
-  }
-
-  echo "All tests passed☑️\n";
-
-}
-
-
-

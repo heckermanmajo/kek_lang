@@ -127,9 +127,3 @@ function parse_else_block(array $tokens, int &$index): ElseNode {
   return $ast_node;
 }
 
-
-if (count(debug_backtrace()) == 0) {
-
-
-  echo "All tests passed☑️\n";
-}
