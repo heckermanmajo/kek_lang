@@ -111,9 +111,53 @@
         c: Position
     }
 
+}
 
+
+# comp time operator
+@ruleset()
+#Comp time scope
+# executed at comp time with a tree-walk-interpreter
+# can create a name space?
+# a comp time scope acts on the parent scope
+
+# the idea of comptime is to be a more strict syntax checked c preprocessor
+# comptime if allows for compile time branching of code
+
+# @ -> the compile time operator
+# the next ast node will be interpreted by the tree walk interpreter
+# at compile time
+
+@{  # all code on this scope is comp time scope
+
+  ruleset("only_const", true)
+
+  @if WINDOWS {
+    out("compiling on windows")
+  }elif(UNIX){
+    out("compiling on unix")
+  }else{
+    out("compiling on unknown")
+  }
 
 }
+
+i :: MyGenericStruct(Int Float){
+    a=1
+    b=2.0
+    c=Position(1,2)
+}
+
+MyStruct :: struct{
+
+}
+
+List(User)()
+Map(String,User)
+Union()
+
+
+
 
 
 

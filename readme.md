@@ -31,7 +31,7 @@ It is very wow.
 - Don't add a feature to the language if it can be a function call.
 - Don't add a feature to the language if it can be a trait.
 - Don't add a feature to the language if it can be just type.
-- Don't add a feature to the language if it is feature is requested by bozos.
+- Don't add a feature to the language if the feature is requested by bozos.
 - Especially if you are the bozo.
 - If having lots of comments is retarded - we love to be retarded. Comment your fucking code you fucking fucker!
 - Static analysis is king, therefore less dynamic features are king.
