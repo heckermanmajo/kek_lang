@@ -20,6 +20,13 @@ function std_out($str){
  */
 
 /**
+ * - use the ast node classes
+ * - assemble structs from traits and check function signatures
+ * - set all parent scopes, so we can have proper name spaces
+ */
+
+
+/**
  * @return void
  */
 function translate_expression(){

@@ -1,6 +1,5 @@
 <?php
 
-
 enum TokenType: string {
   case TYPE_KEYWORD = 'TYPE_KEYWORD';
 
@@ -124,9 +123,17 @@ function get_signs() : array {
   ];
   return $signs;
 }
-enum StatementType: string {
-  case Literal = 'Literal';
-}
+
+$OPERATORS = [
+    "+",
+    "-",
+    "*",
+    "/",
+    "%",
+    "==",
+    "!=",
+    "**",
+];
 
 enum Keywords: string {
   case _PUB = 'pub';
@@ -145,15 +152,18 @@ enum Keywords: string {
   case _ENUM = 'enum';
   case _USE = 'use';
   case _SET = 'set';
-  #case _SELF = 'self';
-/*  case _LIST = 'List';
-  case _MAP = 'Map';
-  case _UNION = 'Union';
-  case _OPTION = 'Option';
-  case _TREE_NODE = 'TreeNode';
-  case _QUEUE = 'Queue';*/
+
 }
 
+
+/**
+ * Special function will not be translated into
+ * normal function calls, but will trigger
+ * special behavior in the transpiler.
+ */
+$SPECIAL_FUNCTIONS = [
+  "import"
+];
 
 class Token {
 
@@ -202,6 +212,9 @@ function is_keyword(string $string, bool $ignore_types): bool{
 }
 
 abstract class AstNode {
+
+  public string $full_scope_name = "";
+
   public function __construct(
     /** @var array<Token> */
     public array $tokens,
@@ -209,7 +222,7 @@ abstract class AstNode {
     public array $children,
     public ?AstNode $generated_by = null,
     public ?AstNode $parent = null,
-    public ?ExecutionContext $context = null
+    public ?ScopeNode $parent_scope = null
   ) {
   }
 
@@ -235,49 +248,129 @@ abstract class AstNode {
     }
   }
 
-  # collect all defintions -> all variable names
-  # collect rules
-  # rules are per module, so the module node is the root of the analysis.
-  # the use statements -> need will be parsed
-  #abstract public function init_execution_context(): string;
+  function init_nodes_recursively(?AstNode $parent = null): void {
 
-  #abstract public function get_type(): string;
+    $this->parent = $parent;
+    # this allows to check, f.e. if a tyoe expression is followed by a function call, etc.
+    $this->init_extra_data();
 
-  #abstract public function render_js(): string;
+    # register my name into the parent scope
 
-  #abstract public function render_php(): string;
+    foreach($this->children as $child){
+      $child->init_nodes_recursively($this);
+    }
 
-}
+  }
 
-class ExecutionContext{
+  function init_extra_data(){}
+
+  /**
+   * Go up as lond we have not hitted a scope
+   * @return void
+   */
+  function set_parent_scopes_recursively(): void {
+    if($this->parent){
+      $some_parent = $this->parent;
+      while($some_parent){
+        if($some_parent instanceof ScopeNode){
+          $this->parent_scope = $some_parent;
+          break;
+        }
+        $some_parent = $some_parent->parent;
+      }
+    }
+    $this->set_my_scope_name();
+
+    foreach($this->children as $child){
+      $child->set_parent_scopes_recursively();
+    }
+  }
+  function set_my_scope_name(){
+
+  }
+
+  function get_scope_name(): string {
+    // look into the parent scope to get the scope name of me
+  }
+
+  function generate_scope_id (): string {
+    return "".uniqid();
+  }
+
+  /**
+   * Evaluate the nodes to php code.
+   *
+   * @param TranspilerState $state
+   * @return string
+   */
+  function evaluate(TranspilerState $state): string {
+
+  }
 
 }
 
 class SyntaxError extends Exception { }
 
-class CompilerState {
-  public function __construct(
-    public array $pre_processor_functions
-  ) {
+/**
+ * Contains the state of the transpiler.
+ *
+ * -> all names, scopes etc. are registered here
+ *    and can be accessed by the transpiler.
+ */
+class TranspilerState {
+  public function __construct() {
   }
 }
 
 class TypeExpression extends AstNode {
+
+  /**
+   * This function returns the type expression
+   * as a string, so we can compare types.
+   *
+   * @return string
+   */
+  function get_type_as_string(): string {
+    return "";
+  }
+
+  function init_extra_data(){
+    # todo: determine if this is used as a name space
+  }
+
 }
 
 class IdentifierNode extends AstNode {
   public bool $is_all_uppercase;
   public bool $starts_with_uppercase;
-  public ?TypeExpression $type_expression;
+
+  /**
+   * This function returns the type expression
+   * as a string, so we can compare types.
+   *
+   * @return string
+   */
+  function get_type_as_string(): string {
+    return "";
+  }
+
 }
 
 class ExpressionNode extends AstNode {
+
+  /**
+   * This function returns the type expression
+   * as a string, so we can compare types.
+   *
+   * @return string
+   */
+  function get_type_as_string(): string {
+    return "";
+  }
+
 }
 
 class CallArgumentListNode extends AstNode {
-}
-
-class DotAccessExpressionNode extends AstNode {
 }
 
 class ValueLiteralNode extends AstNode {
@@ -289,11 +382,7 @@ class NumberLiteralNode extends AstNode {}
 
 class BoolLiteralNode extends AstNode {}
 
-
-
-# TYPE STUFF
-class TypeExpressionNode extends AstNode {
-}
+class TypeExpressionNode extends AstNode {}
 
 class TypeIdentifierNode extends AstNode {
   public bool $is_local = false;
@@ -315,17 +404,11 @@ class TypeIdentifierNode extends AstNode {
   }
 }
 
-class TypeUnionNode extends AstNode {}
-
-class TypeFunctionNode extends AstNode {}
-
-class TypeReturnNode extends AstNode {}
-
 class TypeArgumentListNode extends AstNode {}
 
 class ReturnTypeNode extends AstNode {}
 
-class ConstDefinitionNode extends AstNode {#
+class ConstDefinitionNode extends AstNode {
 
   public bool $extern = false;
   public bool $pub = false;
@@ -341,11 +424,29 @@ class ConstDefinitionNode extends AstNode {#
     return $extra;
   }
 
+  function generate_php_code(): string {
+    ob_start();
+    $name = $this->children[0]->tokens[0]->value;
+    ?>
+    $scope["<?=$name?>"] = <?= $this->children[1]->generate_php_code() ?>
+    <?php
+    return ob_get_clean();
+  }
+
 }
 
 class IfNode extends AstNode {}
 
-class ExpressionTermNode extends AstNode {}
+class ExpressionTermNode extends AstNode {
+
+  # we have access operators
+  # math operator
+
+  # we might want to convert all operators into functions
+  # add() multiply() etc.
+  # inverse()
+
+}
 
 class ScopeNode extends AstNode {}
 
@@ -356,8 +457,6 @@ class FunctionNode extends AstNode {}
 class ForNode extends AstNode {}
 
 class ConstructionLiteralNode extends AstNode {}
-
-class TypeConstructionNode extends AstNode {}
 
 class AssignmentNode extends AstNode {}
 
@@ -377,10 +476,6 @@ class FieldDefinitionNode extends AstNode {}
 class TypeDefinitionNode extends AstNode {
   public string $type;
 }
-
-class UseNode extends AstNode {}
-
-class VariableSettingNode extends AstNode {}
 
 class SetNode extends AstNode {}
 

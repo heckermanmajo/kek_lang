@@ -1,0 +1,95 @@
+# no fn definition in a if or for scope
+# no struct or trait or enum in a if or for scope
+
+{
+  a :: 1
+
+  {
+    a :: 2
+  }
+
+  foo :: fn(a: Int) -> Int {
+    return a + 1
+  }
+
+  Position :: trait{
+    x: Int
+    y: Int
+  }
+
+  MyType :: struct(Position) {
+    a : Int
+  }
+
+  c := MyType.(a=123 x=0 y=0)
+
+  set c.a = 123
+
+  for i:=0..12; 1 {
+    print(i)
+  }
+
+  if foo() {
+    print("foo")
+  } else {
+    print("bar")
+  }
+
+  foo(bar(), baz())
+
+}
+
+$SCOPE = [];  # name container
+$current_scope = 0;
+
+# nested scope
+$scope_nested = [];
+
+# nestzed
+$scope_nested_nested = [];
+
+$current_scope = $current_scope["___anon_scope_1"];
+$current_scope["a"] = 2;
+
+# scope end
+
+
+$scope = [];
+$scope["a"] = 1;
+$scope["___anon_scope_1"] = [];
+$scope["___anon_scope_1"]["a"] = 2;
+
+$scope["foo"] = function($a) {
+  return(add($a, 1));
+};
+
+$scope["MyType"] = [
+  "___construct" = function($a, $x, $y) {
+    $this = [];
+    $this["a"] = $a;
+    $this["x"] = $x;
+    $this["y"] = $y;
+    return $this;
+  }
+];
+
+$scope["c"] = $scope["MyType"]["___construct"](123, 0, 0);
+$scope["c"]["a"] = 123;
+
+$step_size = 1;
+$init_size = 0;
+for(
+  $i = $init_size;
+  lt($i,12);
+  $i += $step_size
+) {
+  print($i);
+}
+
+if($scope["foo"]()) {
+  print("foo");
+} else {
+  print("bar");
+}
+
+$scope["foo"]($scope["bar"](), $scope["baz"]());

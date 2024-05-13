@@ -1,0 +1,386 @@
+# Single Line Comment
+
+##
+Multi Line Comment
+Multi Line Comment
+##
+
+##
+  All code need to be inside a "Scope"
+  A a scope is denoted by a pair of curly braces
+  { }
+
+  newlines and multiple whitespaces are ignored
+  Commas are not needed and are removed by the tokenizer,
+  you can however use them if you want for readability
+
+##
+{
+
+   # scopes can be nested
+   {}
+
+   # scopes behave like in c
+   # variables declared inside a scope are not accessible outside the scope
+   # the default scope can see and use all variables declared
+   # and available in the parent scope
+   a :: 124  # const
+   {
+      b :: 123
+      c :: a + b
+   }
+    # c and b are not accessible here
+
+   # adding () makes the scope into a capture scope
+   # now only the names in the capture list are accessible
+   b :: 123
+   (a){
+      c :: a + a
+      # b is not accessible here
+   }
+
+   # scopes can return values
+   c :: ->Int {
+      return 123
+   }
+
+   # returning scopes can be capturing as well
+   d :: (c) -> Int {
+      return c + 1
+   }
+
+   ##
+   define a variable
+   with :=
+
+   Change a variable with "set"
+   "set" is mandatory, since mutation of state should
+   made explicit.
+
+   ##
+
+   my_var := 123
+
+   set my_var = 124  # set statement
+
+   ##
+     Control flow
+
+     Kek only has if statements and for loops
+   ##
+
+   if a  == 1 {
+      # do something
+   }
+   elif a == 2 {
+      # do something else
+   }
+   else {
+      # do something else
+   }
+
+   start :: 0
+   end :: 10
+   stepsize :: 1
+
+   for i := start .. end; stepsize {
+       # do something
+   }
+
+   for i := 0 .. 10; 1{
+      # do something
+   }
+
+   ##
+
+   Functions
+
+   Functions are NOT first class citizens in Kek, they are
+   more like C functions, but without function pointers.
+
+   The need to be declared as const (as ::).
+
+   ##
+
+   foob :: fn(a:Int b:Int) -> Int {
+     return a + b
+   }
+
+   out(foob(1 3)) # 4
+
+   ##
+    enums
+
+    Enums are simple structs, where you only can declare
+    const values of the same type.
+
+    All types need to start with an upper case letter.
+    Only types are allowed to start with an upper case letter.
+
+   ##
+
+   MyEnum :: enum{
+     A :: 1
+     B :: 2
+   }
+
+   ##
+    structs
+
+    Structs are used to structure data.
+    Structs are also used as name spaces.
+
+    The const values in a struct are "static".
+
+    you can define fields and instanciate an instance
+    of a struct via a construction literal.
+
+    A struct with only const values is a namespace.
+
+   ##
+
+   MyStruct :: struct{
+
+      static_const_field :: 12
+
+      a : Int
+      b : Int
+
+   }
+
+   a :: MyStruct.static_const_field  # 12
+
+   mys :: MyStruct.(a=1 b=2) # .()  is the construction literal syntax
+
+   ##
+    Methods
+
+    Structs can have methods, this allows for a simpler
+    call syntax.
+
+    A method is a function in a struct that has the
+    "self" argument as the first argument.
+
+    Other than that methods are normal functions.
+   ##
+
+   MyStruct :: struct{
+
+      a : Int
+
+      my_method :: fn(self: MyStruct){
+        out(self.a)
+      }
+
+   }
+
+   mys :: MyStruct.(a=1)
+   mys.my_method()  # 1
+
+   # this would be an error
+   # MyStruct.my_method()
+
+   ##
+   traits
+
+   Kek has no inheritance, but it has traits.
+
+   Traits can act as interfaces or as mixins.
+
+   A struct can have multiple traits.
+   ##
+
+   Position :: trait{
+     x : Int
+     y : Int
+
+     apply :: fn(self: Position, x:Int y:Int){
+       self.x = x
+       self.y = y
+     }
+   }
+
+   IdHaver :: trait{
+     id : Int
+   }
+
+   Player :: struct(Position IdHaver){}
+
+   p :: Player.(x=1 y=2)
+   p.apply(Position.(x=42 y=42))
+
+   ##
+   _ type shorthand
+
+   We can replace the type with _ if the type can be deduced from the
+   use case. This is f.e. the case if we call a function.
+   ##
+
+   p.apply(_.(x=69 y=69))
+
+
+   ##
+   optionals
+
+   Kek code is statically typed.
+
+   So we need a type for values that can be nil.
+
+   To unpack an option, we need to use the ? operator
+   with the unpack syntax in the if statement.
+   ##
+
+   foo :: fn(a: Bool) -> Player?{
+     if a {
+       return Player.(x=1 y=2)
+     }
+     return nil
+   }
+
+   option :: foo(true) #  type: Player?
+   if p :: ?option { # unpack syntax -> can also be "p := ?option"
+     # p is now like defined in this scope and cannot leave it
+     out(p.x)
+   }
+   else{
+     out("nil")
+   }
+
+   ##
+   unions
+
+   We can return union-types.
+
+   This is used instead of try-catch blocks, but
+   can also be used for other things.
+
+   ##
+
+   handle :: fn(a: Bool) -> Player | String {
+     if a {
+       return Player.(x=1 y=2)
+     }
+     return "error"
+   }
+
+   result :: handle(true) # type: Player | String
+   if player :: result | Player {
+     out(player.x)
+     # do more with player
+   }
+   elif error :: result | String {
+     out(error)
+   }
+
+   ##
+   generics
+
+   Generics allows to create structs and traits for
+   multiple types.
+
+   The type placeholder need to start with "T_"
+
+   ##
+
+   MyContainer :: struct(T_1)(Position){
+      data : T_1
+
+      genfn :: fn(self: MyContainer(T_1), a: T_1) -> T_1 {
+        return a
+      }
+   }
+
+   myc :: MyContainer(Int).(data=1 x=123 y=123)
+
+   ##
+   Array and Map(Dict)
+
+   Kek has a built in array and map type.
+
+   If a value that is not a type is followed by a .(
+   this is interpreted as accessing the value at the index.
+
+   It qualifies as a indentifier can can stand on
+   the left side of an assignment.
+   ##
+
+   {
+     arr := List(Int).(1 2 3 4 5)
+     map :: Dict(String, Int).("a"=1 "b"=2 "c"=3)
+
+     out(arr.(0))
+     out(arr.(1))
+     out(map.("a"))
+     out(map.("b"))
+
+     set arr.(0) = 123
+   }
+
+   ##
+   const & local
+
+   Function arguments and return types can be denoted as const and local.
+
+   If an argument is denoted as const, it cannot be changed within
+   the function - even if its is mutable outside the function.
+
+   IF an argument is denoted as local, this argument cannot be set to any
+   value that does leave the function scope, expect into function that
+   have the same local argument.
+   So local ensures, that there is no new state containing the local reference
+   after the function has concluded.
+
+   If a return type is const, the return value can only be set to
+   a const field or passed into a const argument. Const is part of the type.
+
+   If a return type is local, the return value can only be set to
+   a local field or passed into a local argument. Local is part of the type.
+
+   ##
+
+   # todo: add example
+
+   ##
+    Scope Rules & rule-scopes
+
+    Each scope can have compile time rules set.
+    Each scope inherits the rules from the parent scope.
+
+    Rules can also be added together and applied to multiple scopes.
+   ##
+
+   {
+     ruleset only_const = true
+
+     a :: 123
+
+     # not allowed
+     # b := 123
+
+     {
+       # not allowed
+       # c := 123
+     }
+
+     {
+       ruleset only_const = false
+
+       b := 123
+     }
+   }
+
+   MyFunctionConstraints :: rules{
+      only_const :: true
+      only_local_args:: true
+   }
+
+   my_c_f :: fn(){
+     ruleset MyFunctionConstraints
+     # now all rules are applied here ...
+   }
+
+
+
+
+
+}

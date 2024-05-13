@@ -19,6 +19,8 @@ include_once __DIR__ . "/parser/parse_set.php";
 include_once __DIR__ . "/parser/parse_type_expression.php";
 include_once __DIR__ . "/parser/parse_value_literal.php";
 
+include_once __DIR__ . "/generate_php_code.php";
+
 $help = <<<HELP
 
 KEK V1.0.0
@@ -72,6 +74,8 @@ if (count($args) < 3) {
 
 if ($command === "ast") {
   echo "Parsing file: $filename\n";
+} elseif ($command === "php") {
+  echo "Transpiling file: $filename\n";
 } else {
   echo $help;
   exit;
@@ -92,11 +96,21 @@ $tokens = tokenize($file);
 #echo "Parsing file\n";
 $index = 0;
 $ast = parse_scope($tokens, $index);
+# set all parents, calculate the scope ids
+$ast->init_nodes_recursively();
+$ast->set_parent_scopes_recursively();
 
 try {
   if ($command === "ast") {
     echo "\n\nAST:\n\n";
     $ast->print_as_tree();
+  }
+  elseif ($command === "php"){
+    # translate to php code
+    echo "\n\nAST:\n\n";
+    $ast->print_as_tree();
+    echo "\n\nPHP:\n\n";
+    echo generate_php_code($ast);
   }
 }catch (Exception $e) {
   echo "Error: " . $e->getMessage();

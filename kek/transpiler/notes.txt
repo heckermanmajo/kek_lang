@@ -1,0 +1,8 @@
+Treat the transpiler like an ast walk-interpreter.
+-> but a two step-process.
+-> firts loop over the ast and create a favorable data-structure.
+->   this means resolve traits
+->   resolves generics
+->   to type checking
+->   remove unclear stuff and mark it such that it is clear
+->   have a translation-ast

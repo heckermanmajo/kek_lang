@@ -4,6 +4,8 @@
         abstract_method :: fn() -> Position
     }
 
+    my_trait.abstract_method
+
     pos := Postion.foo(a=123 b=124)
 
     pos := Postion.(x=12 y=124)
@@ -60,5 +62,8 @@
     }
 
     my_var2 :: 1 + 2 * 3 / 5 + 12 - 123 ** 1234
+
+    Postion.(12 12)
+    Position.new(12 12)
 
 }
