@@ -211,9 +211,27 @@ function is_keyword(string $string, bool $ignore_types): bool{
   return false;
 }
 
+class Name{
+  public string $name;
+  public string $type;
+  public AstNode $origin_scope;
+}
+
+/**
+ * Contains the state of the transpiler.
+ *
+ * -> all names, scopes etc. are registered here
+ *    and can be accessed by the transpiler.
+ */
+class TranspilerState {
+  public function __construct() {}
+}
+
 abstract class AstNode {
 
   public string $full_scope_name = "";
+
+  public int $scope_number = 0;
 
   public function __construct(
     /** @var array<Token> */
@@ -262,7 +280,22 @@ abstract class AstNode {
 
   }
 
-  function init_extra_data(){}
+  function init_extra_data(){
+
+    # collect all type-defintions for a scope
+
+  }
+
+  /**
+   * This function returns all names that are available to this
+   * node.
+   *
+   * @return array<Name>
+   */
+  function get_all_available_names(): array {
+    # go up and collect all available names
+    # from the parent scopes
+  }
 
   /**
    * Go up as lond we have not hitted a scope
@@ -311,16 +344,7 @@ abstract class AstNode {
 
 class SyntaxError extends Exception { }
 
-/**
- * Contains the state of the transpiler.
- *
- * -> all names, scopes etc. are registered here
- *    and can be accessed by the transpiler.
- */
-class TranspilerState {
-  public function __construct() {
-  }
-}
+
 
 class TypeExpression extends AstNode {
 
@@ -448,7 +472,40 @@ class ExpressionTermNode extends AstNode {
 
 }
 
-class ScopeNode extends AstNode {}
+class ScopeNode extends AstNode {
+
+  /**
+   * This function collects all function definitions
+   * before the rest of the code is evaluated.
+   *
+   * @return void
+   */
+  function collect_all_function_definitions(){}
+
+  /**
+   * Only in a struct or trait, we need to collect the field
+   * definitions before we collect the function definitions and nested type ones.
+   * Since if we use the type of the struct as argument
+   * in a function, we need to know its fields.
+   *
+   * Also consts need to be collected.
+   *
+   * BUT: since this is only done in the context of struct, trait or enum,
+   * This is no problem.
+   *
+   * @return void
+   */
+  function collect_all_field_definitions(){}
+
+  /**
+   * This function collects all the type definitions
+   * before the rest of the code is evaluated.
+   *
+   * @return void
+   */
+  function collect_all_type_definitions(){}
+
+}
 
 class BlockNode extends AstNode {}
 

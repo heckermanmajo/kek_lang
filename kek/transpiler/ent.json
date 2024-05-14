@@ -1,0 +1,51 @@
+
+
+[
+
+  {
+    "type": "ConstDefinition",
+    "name": "PI",
+    "kek_type": "NumberType",
+    "value": {
+      "type": "NumberLiteral",
+      "value": "3.141592653589793"
+    }
+  },
+
+  {
+    "type": "StructDefinition",
+    "name": "Point",
+    "kek_type": "StructType",
+    "fields": []
+  },
+
+  {
+    "type": "FunctionDefinition",
+    "name": "foo",
+    "kek_type": "FunctionType",
+    "parameters": [],
+    "returnType": {
+      "type": "NumberType"
+    },
+    "body": {
+      "type": "Scope",
+      "statements": [
+        {
+          "type": "MethodCall",
+          "name": "print",
+          "identifier": {
+            "type": "Identifier",
+            "name": "bar",
+            "kek_type": {
+                "type": "StructType",
+                "name": "Point"
+            }
+          },
+          "arguments": []
+        }
+
+      ]
+    }
+  }
+
+]

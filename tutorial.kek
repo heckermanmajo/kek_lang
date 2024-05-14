@@ -6,16 +6,23 @@ Multi Line Comment
 ##
 
 ##
-  All code need to be inside a "Scope"
-  A a scope is denoted by a pair of curly braces
-  { }
-
   newlines and multiple whitespaces are ignored
   Commas are not needed and are removed by the tokenizer,
   you can however use them if you want for readability
 
 ##
-{
+
+   import std:out as out
+   # this file is parsed
+   # all exported types (marked as pub), get a prefix
+   # then we go over this file and
+   # place the prefix in front of the "my_function"
+   # in every use
+   # we keep track of already imported files
+   # so we dont import the same file twice
+   import "path/to/file":my_function as my_function
+   # if the file cannot be found locally the compiler
+   # looks in te global paths, etc..
 
    # scopes can be nested
    {}
@@ -102,8 +109,8 @@ Multi Line Comment
 
    ##
 
-   foob :: fn(a:Int b:Int) -> Int {
-     return a + b
+   fn foob(a:Int b:Int) -> Int {
+     ret a + b
    }
 
    out(foob(1 3)) # 4
@@ -119,7 +126,7 @@ Multi Line Comment
 
    ##
 
-   MyEnum :: enum{
+   enum MyEnum{
      A :: 1
      B :: 2
    }
@@ -128,29 +135,21 @@ Multi Line Comment
     structs
 
     Structs are used to structure data.
-    Structs are also used as name spaces.
 
-    The const values in a struct are "static".
 
-    you can define fields and instanciate an instance
-    of a struct via a construction literal.
-
-    A struct with only const values is a namespace.
+    Structs and functions can only be defined on the top level.
 
    ##
 
-   MyStruct :: struct{
-
-      static_const_field :: 12
-
-      a : Int
-      b : Int
-
+   struct MyStruct {
+      a: Int
+      b: Int
+      myList: [MyStruct]
    }
 
    a :: MyStruct.static_const_field  # 12
 
-   mys :: MyStruct.(a=1 b=2) # .()  is the construction literal syntax
+   mys :: MyStruct(a=1 b=2) # calling a type -> construction literal
 
    ##
     Methods
@@ -164,60 +163,20 @@ Multi Line Comment
     Other than that methods are normal functions.
    ##
 
-   MyStruct :: struct{
+   struct MyName {
 
-      a : Int
+      a: Int
 
-      my_method :: fn(self: MyStruct){
+      fn myMethod(self: MyStruct){
         out(self.a)
       }
 
    }
 
-   mys :: MyStruct.(a=1)
-   mys.my_method()  # 1
+   mys :: MyStruct(a=1)
 
-   # this would be an error
-   # MyStruct.my_method()
-
-   ##
-   traits
-
-   Kek has no inheritance, but it has traits.
-
-   Traits can act as interfaces or as mixins.
-
-   A struct can have multiple traits.
-   ##
-
-   Position :: trait{
-     x : Int
-     y : Int
-
-     apply :: fn(self: Position, x:Int y:Int){
-       self.x = x
-       self.y = y
-     }
-   }
-
-   IdHaver :: trait{
-     id : Int
-   }
-
-   Player :: struct(Position IdHaver){}
-
-   p :: Player.(x=1 y=2)
-   p.apply(Position.(x=42 y=42))
-
-   ##
-   _ type shorthand
-
-   We can replace the type with _ if the type can be deduced from the
-   use case. This is f.e. the case if we call a function.
-   ##
-
-   p.apply(_.(x=69 y=69))
-
+   mys:my_method()  # 1 # call methods with :
+   p:apply(_(x=69 y=69))
 
    ##
    optionals
@@ -230,15 +189,15 @@ Multi Line Comment
    with the unpack syntax in the if statement.
    ##
 
-   foo :: fn(a: Bool) -> Player?{
+   fn foo(a: Bool) -> Player|nil {
      if a {
-       return Player.(x=1 y=2)
+       ret Player(x=1 y=2)
      }
-     return nil
+     ret nil
    }
 
    option :: foo(true) #  type: Player?
-   if p :: ?option { # unpack syntax -> can also be "p := ?option"
+   if p :: option ?? Player { # unpack syntax -> can also be "p := ?option"
      # p is now like defined in this scope and cannot leave it
      out(p.x)
    }
@@ -256,41 +215,21 @@ Multi Line Comment
 
    ##
 
-   handle :: fn(a: Bool) -> Player | String {
+   fn handle(a: Bool) -> Player|String {
      if a {
-       return Player.(x=1 y=2)
+       ret Player(x=1 y=2)
      }
-     return "error"
+     ret "error"
    }
 
    result :: handle(true) # type: Player | String
-   if player :: result | Player {
+   if player :: result ?? Player {
      out(player.x)
      # do more with player
    }
-   elif error :: result | String {
+   elif error :: result ?? String {
      out(error)
    }
-
-   ##
-   generics
-
-   Generics allows to create structs and traits for
-   multiple types.
-
-   The type placeholder need to start with "T_"
-
-   ##
-
-   MyContainer :: struct(T_1)(Position){
-      data : T_1
-
-      genfn :: fn(self: MyContainer(T_1), a: T_1) -> T_1 {
-        return a
-      }
-   }
-
-   myc :: MyContainer(Int).(data=1 x=123 y=123)
 
    ##
    Array and Map(Dict)
@@ -302,18 +241,21 @@ Multi Line Comment
 
    It qualifies as a indentifier can can stand on
    the left side of an assignment.
+
+   Since we only have list and map as generic types
+   we can only expect ( and ) if it is preceded by a type.
    ##
 
    {
-     arr := List(Int).(1 2 3 4 5)
-     map :: Dict(String, Int).("a"=1 "b"=2 "c"=3)
+     arr := [Int](1 2 3 4 5)
+     map :: [String Int]("a"=1 "b"=2 "c"=3)
 
-     out(arr.(0))
-     out(arr.(1))
-     out(map.("a"))
-     out(map.("b"))
+     out(arr:(0))
+     out(arr:(1))
+     out(map:("a"))
+     out(map:("b"))
 
-     set arr.(0) = 123
+     set arr 0 = 123
    }
 
    ##
@@ -363,7 +305,7 @@ Multi Line Comment
      }
 
      {
-       ruleset only_const = false
+       rule only_const = false
 
        b := 123
      }
@@ -378,9 +320,3 @@ Multi Line Comment
      ruleset MyFunctionConstraints
      # now all rules are applied here ...
    }
-
-
-
-
-
-}

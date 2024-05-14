@@ -1,12 +1,10 @@
-For translating kek, we only need
+- define all structs on top level
+  only add a prefix to the struct name
 
-structs or maps
-Lists
-if and for
-functions
+- we can translate methods into methods
 
-namespaces -> simple naming
+- add a prefix to all definitions
 
-anonymous scope -> id
+- we translate . access to -> access
 
-scopeid__scopeid__scopeid__name
+- function calls can eb simple function calls

@@ -1,21 +1,128 @@
-{
 
-    my_trait :: trait(T_1)(Position){
-        abstract_method :: fn() -> Position
-    }
+import "./path_to_file:Position" as PositionAlias
+import "./path_to_file:func" as imported_func
 
-    my_trait.abstract_method
+pub fn getWindowHeight () Int { ret 800 }
+pub fn getWindowWidth () Int { ret 800 }
+
+pub struct MyStruct{
+
+  a: Int
+  b: Int
+
+  list: [Int]
+  map: [String->Int]
+
+  fn myMethod (self: MyStruct) Int {
+    return self.a + self.b
+  }
+
+}
+
+pub fn new_MyStruct (a: Int b: Int) MyStruct {
+  ret MyStruct(a=a b=b)
+}
+
+pub enum Enum {
+  a -> 1
+  b -> 2
+}
+
+fn factory() -> Int|String|Error {
+   ret 123
+}
+
+pub fn foo(a: Int) -> Int {
+
+  my_struct := MyStruct(a=123 b=124)
+
+  other_struct := new_MyStruct(123 124)
+
+  out(my_struct:myMethod())
+
+  print("hi")
+
+  my_enum :: Enum.a
+
+  my_int :: -> Int {
+    ret 123 + 124
+  }
+
+  my_int2 :: (my_int) -> Int {
+    ret 123 + my_int
+  }
+
+  {
+     result :: factory()
+
+     if result ?? Int {
+        print(itos(it))
+     }
+
+     elif result ?? String {
+        print(it)
+     }
+
+     elif result ?? Error {
+        print(it.message)
+     }
+
+  }
+
+  counter := 0
+
+  for i := 0..-10; -1  {
+    print(i)
+    set counter = counter + 1
+  }
+
+  myList := [1 2 3 4 5]
+
+  myMap := [
+    "a" -> 1
+    "b" -> 2
+  ]
+
+  # array access  returns a option --> since the index might not exist
+  # if you only have ?? in the conditional
+  # there is a "it" value created in the
+  # scope following the if
+  # same for elif
+  if myMap["a"] ?? Int { out(it) }
+
+  if myList[0] ?? Int {
+    out(it)
+    value := it
+    if myList[1] ?? Int { out(it) }
+  }
+
+  set myList 0 = 123
+  set myMap "a" = 123
+
+  ret a + 2
+}
+
+# MyType__my_method(self: MyType) -> Int
+
+fn foo(myStruct: MyStruct) Int {
+
+  myStruct:myMethod() # colon followed by a lower case letter -> method call
+  set myStruct.a = 123  # field access
+
+
+  # array access
+  set myArray 124 = 123 #  set twi expressions -> array access or map access
+
+}
 
     pos := Postion.foo(a=123 b=124)
 
-    pos := Postion.(x=12 y=124)
-    pos := Postion(Int).(x=12 y=124)
-    foo :: fn(pos: Postion){
+    pos := Postion(x=12 y=124)
+    pos := Postion(x=12 y=124)
+    fn foo(pos: Postion){}
 
-    }
-
-    foo(Postion.(12 12))
-    foo(_.(12 12))
+    foo(Postion(12 12))
+    foo(_(12 12))
 
     a.a.s.e
 
@@ -27,29 +134,33 @@
 
     set a = a.b.c.d().ool()
 
-    s :: struct{
-        a: local const List(Int)
+    S :: struct {
+        a: local const [Int]
     }
 
-    foo :: fn(a: local const List(local const Player)) -> local const Player{
+    foo :: fn(
+      a: local const [local const Player]
+    )
+      local const Player
+    {
 
-        if p :: ?p.0 { # local const Player?
-            p_copy :: Player.copy(p)
+        if a[0] ?? Player { # local const ?Player
+            p_copy :: Player.copy(it)
             return p_copy
         }
 
     }
 
-    _ := return_one() # ignore the return value -> do it for the side effect
+    _0 := return_one() # ignore the return value -> do it for the side effect
 
-    factory :: fn() -> local Int|String|Error {
+    factory :: fn() local Int|String|Error {
         return 123
     }
 
     {
         result :: factory()
-        if i :: result | Int {
-            print(i)
+        if result ?? Int {
+            print(it)
         }elif s := result | String {
             print(s)
         }elif e := result | Error {
@@ -57,8 +168,12 @@
         }
     }
 
-    factory :: fn() -> local Int|local const String?|local Error {
-        return 123
+    factory :: fn() ->
+      local Int
+      |local const ?String
+      |local Error
+    {
+        ret 123
     }
 
     my_var2 :: 1 + 2 * 3 / 5 + 12 - 123 ** 1234
@@ -66,4 +181,213 @@
     Postion.(12 12)
     Position.new(12 12)
 
-}
+    # data as interface
+    atstar
+
+    struct AstarNode {
+        is_passable : Bool
+        next : ?AstarNode
+
+        fn pimmel(self: AstarNode) -> AstarNode {
+            return self.next
+        }
+    }
+
+    Tile :: struct{
+      use a_star_node: AstarNode #  this adds the astar node to tile
+      # as compostion
+      # this allows to pass a tile to a function that expects an astar node
+      # the compiler will automatically pass in the astar node of the tile
+
+      update:: fn(self: Tile, is_passable: Bool) {
+          set self.a_star_node.is_passable = is_passable
+          set self.is_passable = is_passable
+          # both are the same
+      }
+
+    }
+
+    t :: new Tile(
+      new AstarNode(
+        is_passable = true
+        next = new AstarNode(false nil)
+      )
+    )
+
+    t.pimmel()
+
+    WINDOW_HEIGHT :: 800
+
+    foo :: fn() -> Int {
+       return 123
+    }
+
+    Player :: struct {
+        name : String
+        position: Position
+
+        tos :: fn(self: Player) -> String {
+           return "Player: " + self.name + " at " + self.position.to_string()
+        }
+    }
+
+        ##
+
+          Struct
+
+          $scope["Player.new"] = function (name: String, &position: array): array {
+
+
+          }
+
+
+
+        ##
+
+        Player.tos :: fn() -> String {
+           lol
+           return "Player: " + self.name + " at " + self.position.to_string()
+        }
+
+        ##
+         $scope["Player.tos"] = function ($self: &array): string {
+            $scope = [];
+            return add(
+              add(
+                "Player: ",
+                $self ["name"]
+              ),
+              add(
+                " at ",
+                $self["position"]["__methods"]["to_string"](
+                  $self ["position"]
+                )
+              )
+            );
+         }
+        ##
+
+        {
+          a := 123
+          set a = 1299
+        }
+
+        ##
+
+          (function($_scope){
+             $scope = [...$_scope];
+             define_val($scope,"a", 123);
+             set($scope,"a", 1299);
+          })($scope);
+
+        ##
+
+        (b){
+          a := 123
+          set a = 1299
+        }
+
+        ##
+
+          (function($b){
+             $scope = [
+              "b" => $b
+             ];
+             define_val($scope,"a", 123);
+             set($scope,"a", 1299);
+          })(get($scope,"b"));
+
+        ##
+
+        ##
+
+        ##
+
+        {
+         s1
+         {
+           s2
+           {
+             s3
+           }
+         }
+
+         {
+            s4
+            class s4_TypeName{
+              public function __construct(){
+                $this->m = "123";
+              }
+              public string $m;
+            }
+
+            $s4_a = s4_TypeName();
+
+            s4_a -> m
+
+         }
+
+        }
+
+        a :: a
+
+        if a == 124 and b == 123 {
+            print(b)
+            b.foo.bar()
+            # field access
+            # function access
+            # name space acness sein
+        }
+        ##
+        if
+        (
+          _and(
+            _equals(
+              $s1_a, 123
+            ),
+            _equals(
+              $s1_b,
+              124
+            )
+          )
+        )
+        {
+
+        }
+
+
+        ##
+
+
+        ##
+          cond(
+            equals(get($scope,"a"), 124),
+            (function($_scope){
+               $scope = [...$scope];
+               call(get($scope,"print"), [get($scope,"b")]);
+               call(get(get(get($scope,"b"),"foo"),"bar"), []);
+            })($scope),
+            [
+              # else, elif
+            ]
+          );
+
+        ##
+    }
+
+    Player :: enum{
+       name :: 1
+    }
+
+    p1 := Player(name="John" position=_(12 12))
+    out(p1.tos())
+
+    p1 := Player(name="John" position=_(12 12))
+    #p1 := Player{ name="John" position=.{x=12 y=12} }
+
+   new <Tyype> ()
+
+# a struct type also creates a function
+# TypeName_new
+# and TypeName() is translated to TypeName_new()
+# _ is treated as a type ...
