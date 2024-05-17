@@ -1,4 +1,26 @@
 <?php
+/**
+ * Keklang refactoring.
+ *
+ * -> Create PHP code by an AST
+ *    So we reach te ideal form of the AST,
+ *    then we create such an AST from the code.
+ *
+ * -> Put the tokenizer in
+ *    (fix the single line comment bug)
+ *
+ * -> Copy paste the parser over, based on
+ *    the old parser, apply the new syntax simplifications
+ *
+ * -> Enrich the AST, until we reach the format
+ *    we have already tested to be working to
+ *    generate the PHP code.
+ *
+ *
+ * We can delete names after they are created instead of using real
+ * scopes.
+ *
+ */
 
 $KEYWORDS = [
   "enum",
